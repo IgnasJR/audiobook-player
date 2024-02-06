@@ -1,0 +1,11 @@
+progress[value] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 3vh;
+}
+.player {
+    height: 30%;
+    background-color: #4e134e;
+    padding: 0.5em;
+}
