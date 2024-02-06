@@ -5,7 +5,6 @@ function Player({ src, onTimeUpdate }) {
   const audioRef = useRef(null);
   const progressRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [currentTime, setCurrentTime] = useState(audioRef.current?.currentTime);
 
   useEffect(() => {
     const audioElement = audioRef.current;
@@ -15,7 +14,6 @@ function Player({ src, onTimeUpdate }) {
       progressRef.current.value = progress;
 
       if (onTimeUpdate) {
-        setCurrentTime(audioElement.currentTime);
         onTimeUpdate(audioElement.currentTime, audioElement.duration);
       }
     };

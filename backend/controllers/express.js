@@ -13,6 +13,7 @@ const setupExpress = (app) => {
 
       res.setHeader("Content-Disposition", `inline; filename="${fileName}"`);
       res.setHeader("Content-Type", "audio/mpeg");
+      res.setHeader("Content-Length", fileData.length);
       res.status(200).send(fileData);
     } catch (error) {
       console.error(error);
@@ -20,12 +21,14 @@ const setupExpress = (app) => {
     }
   });
 
-  app.post("/api/upload", upload.single("file"), (req, res) => {
-    if (!req.file) {
+  app.post("/api/upload", upload.array("files"), (req, res) => {
+    if (!req.files || req.files.length === 0) {
       return res.status(400).send("No file uploaded.");
     }
     try {
-      addAudio(req.file);
+      req.files.forEach((file) => {
+        addAudio(file, req.body.artist, req.body.album);
+      });
     } catch (error) {
       res.status(400).send(error);
       return;
