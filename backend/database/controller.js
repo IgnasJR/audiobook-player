@@ -125,4 +125,61 @@ const addUser = async (username, password) => {
   }
 };
 
-module.exports = { addAudio, getAudio, getUser, addUser };
+const getAlbums = async () => {
+  return new Promise((resolve, reject) => {
+    try {
+      const selectQuery = "SELECT DISTINCT Album, Artist FROM AudioFiles";
+      connection.getConnection((err, conn) => {
+        if (err) {
+          console.error(err);
+          reject(err);
+          return;
+        }
+
+        conn.query(selectQuery, (error, results, fields) => {
+          conn.release();
+          if (error) {
+            console.error(error);
+            reject(error);
+            return;
+          }
+          resolve(results);
+        });
+      });
+    } catch (error) {
+      console.error(error);
+      reject(error);
+    }
+  });
+};
+
+const getAlbum = async (album) => {
+  return new Promise((resolve, reject) => {
+    try {
+      const selectQuery =
+        "SELECT ID, FileName, Artist FROM AudioFiles WHERE Album = ?";
+      connection.getConnection((err, conn) => {
+        if (err) {
+          console.error(err);
+          reject(err);
+          return;
+        }
+
+        conn.query(selectQuery, [album], (error, results, fields) => {
+          conn.release();
+          if (error) {
+            console.error(error);
+            reject(error);
+            return;
+          }
+          resolve(results);
+        });
+      });
+    } catch (error) {
+      console.error(error);
+      reject(error);
+    }
+  });
+};
+
+module.exports = { addAudio, getAudio, getUser, addUser, getAlbums, getAlbum };

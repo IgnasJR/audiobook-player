@@ -1,5 +1,10 @@
 const upload = require("../middleware/multerMiddleware");
-const { addAudio, getAudio } = require("../database/controller");
+const {
+  addAudio,
+  getAudio,
+  getAlbums,
+  getAlbum,
+} = require("../database/controller");
 
 const setupExpress = (app) => {
   app.get("/api/retrieve", async (req, res) => {
@@ -34,6 +39,32 @@ const setupExpress = (app) => {
       return;
     }
     res.status(200).send("Success");
+  });
+
+  app.get("/api/albums", async (req, res) => {
+    try {
+      const albums = await getAlbums();
+      res.status(200).send(albums);
+    } catch (error) {
+      console.error(error);
+      res.status(500).send("Internal Server Error");
+    }
+  });
+
+  app.get("/api/album", async (req, res) => {
+    try {
+      console.log(req.query.album);
+      if (!req.query.album) {
+        res.status(400).send("No album provided");
+        return;
+      }
+      const album = req.query.album;
+      const albumData = await getAlbum(album);
+      res.status(200).send(albumData);
+    } catch (error) {
+      console.error(error);
+      res.status(500).send("Internal Server Error");
+    }
   });
 };
 

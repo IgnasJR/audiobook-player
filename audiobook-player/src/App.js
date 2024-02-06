@@ -1,16 +1,19 @@
-import "./App.css";
+import "./output.css";
 import Player from "./Player";
+import Selector from "./Selector";
 import React, { useState } from "react";
 
 function App() {
-  const [selectedTrack, setSelectedTrack] = useState(8);
+  const [selectedTrack, setSelectedTrack] = useState(null);
+  const [selectedAlbum, setSelectedAlbum] = useState(null);
 
   return (
     <div className="App">
-      <h1>Audiobook Player</h1>
-      <Player
-        src={`${window.location.protocol}//${window.location.hostname}:3001/api/retrieve?id=${selectedTrack}`}
+      <Selector
+        setSelectedAlbum={setSelectedAlbum}
+        setSelectedTrack={setSelectedTrack}
       />
+      <Player selectedTrack={selectedTrack} />
     </div>
   );
 }
