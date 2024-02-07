@@ -8,7 +8,7 @@ function App() {
   const [selectedAlbum, setSelectedAlbum] = useState(null);
 
   return (
-    <div className="App">
+    <div className="App bg-inherit">
       <Selector
         setSelectedAlbum={setSelectedAlbum}
         setSelectedTrack={setSelectedTrack}
