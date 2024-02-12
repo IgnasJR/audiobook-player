@@ -1,4 +1,5 @@
 import "./index.css";
+import ReactAudioPlayer from 'react-audio-player';
 import React, { useEffect, useRef, useState } from "react";
 
 function Player({ onTimeUpdate, selectedTrack }) {
@@ -8,10 +9,10 @@ function Player({ onTimeUpdate, selectedTrack }) {
   const [queuePosition, setQueuePosition] = useState(0);
 
   useEffect(() => {
-    const audioElement = audioRef.current;
-    const handleTimeUpdate = () => {
-      const audioElement = audioRef.current;
-      const duration = audioElement.duration;
+    const audioElement = audioRef.current.audioEl.current;
+      const handleTimeUpdate = () => {
+        const audioElement = audioRef.current.audioEl.current;
+        const duration = audioElement.duration;
     
       if (!isNaN(duration) && isFinite(duration)) {
         const progress = (audioElement.currentTime / duration) * 100;
@@ -41,7 +42,7 @@ function Player({ onTimeUpdate, selectedTrack }) {
     if (!selectedTrack) {
       return;
     }
-    const audioElement = audioRef.current;
+    const audioElement = audioRef.current.audioEl.current;
 
     if (isPlaying) {
       audioElement.pause();
@@ -58,9 +59,8 @@ function Player({ onTimeUpdate, selectedTrack }) {
     if (queuePosition < selectedTrack.length - 1){
       setQueuePosition(queuePosition + 1);
     }
-    audioRef.current.pause();
-    // Not ideal, but the only way to reset the progress bar without modifying the audio element and the method
-    handleProgressClick({pageX: 0}); // Passing the same value as event to reset the progress bar
+    audioRef.current.audioEl.current.pause();
+    setAudioTime(0);
   }
   const handlePreviousInQueue = () => {
     if (!selectedTrack) {
@@ -69,30 +69,44 @@ function Player({ onTimeUpdate, selectedTrack }) {
     if (queuePosition > 0){
       setQueuePosition(queuePosition - 1);
     }
-    audioRef.current.pause();
-    handleProgressClick({pageX: 0});
+    audioRef.current.audioEl.current.pause();
+    setAudioTime(0);
   }
 
   const handleProgressClick = (e) => {
     if (!selectedTrack) {
       return;
     }
-    const audioElement = audioRef.current;
+    const audioElement = audioRef.current.audioEl.current;
     const progressElement = progressRef.current;
     const clickPosition = e.pageX - progressElement.getBoundingClientRect().left;
     const percentage = clickPosition / progressElement.offsetWidth;
     const newTime = percentage * audioElement.duration;
-    audioElement.currentTime = newTime;
+    setAudioTime(newTime);
+  };
+
+  const setAudioTime = (time) => {
+    const audioElement = audioRef.current.audioEl.current;
+
+    console.log('current time ', audioElement.currentTime, audioElement.src)
+    console.log('setting time to ', time, ' seconds');
+    
+    audioElement.currentTime = time;
   };
 
   const handleVolumeChange = (e) => {
-    const audioElement = audioRef.current;
+    const audioElement = audioRef.current.audioEl.current;
     audioElement.volume = e.target.value;
   }
 
   return (
     <div className='fixed bottom-0 w-full h-20 bg-slate-700'>
-      <audio autoPlay id='audio' onEnded={handleNextInQueue} ref={audioRef} src={selectedTrack ? `${window.location.protocol}//${window.location.hostname}:3001/api/retrieve?id=${selectedTrack[queuePosition].ID}` : null}
+      <ReactAudioPlayer
+        src={selectedTrack ? `${window.location.protocol}//${window.location.hostname}:3001/api/retrieve?id=${selectedTrack[queuePosition].ID}` : null}
+        autoPlay
+        type="audio/mpeg"
+        onEnded={handleNextInQueue} 
+        ref={audioRef}
       />
       <div className='controls pt-2'>
         <input className="absolute right-2 top-1/4 max-w-3xl h-2 mb-6 bg-slate-400 rounded-lg appearance-none cursor-pointer dark:bg-gray-700" type="range" id="volume" name="volume" min="0" max="1" step="0.01" onChange={handleVolumeChange}/>

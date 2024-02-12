@@ -6,14 +6,21 @@ import React, { useState } from "react";
 function App() {
   const [selectedTrack, setSelectedTrack] = useState(null);
   const [selectedAlbum, setSelectedAlbum] = useState(null);
+  let isAuthenticated = true;
 
   return (
     <div className="App bg-inherit">
-      <Selector
-        setSelectedAlbum={setSelectedAlbum}
-        setSelectedTrack={setSelectedTrack}
-      />
-      <Player selectedTrack={selectedTrack} />
+      {isAuthenticated ? (
+        <>
+          <Selector
+            setSelectedAlbum={setSelectedAlbum}
+            setSelectedTrack={setSelectedTrack}
+          />
+          <Player selectedTrack={selectedTrack} />
+        </>
+      ) : (
+        <h1>Not authenticated</h1>
+      )}
     </div>
   );
 }

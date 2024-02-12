@@ -13,13 +13,33 @@ const setupExpress = (app) => {
         res.status(400).send("No id provided");
         return;
       }
+
       const id = req.query.id;
       const { fileName, fileData } = await getAudio(id);
 
       res.setHeader("Content-Disposition", `inline; filename="${fileName}"`);
       res.setHeader("Content-Type", "audio/mpeg");
       res.setHeader("Content-Length", fileData.length);
-      res.status(200).send(fileData);
+      res.setHeader("Accept-Ranges", "bytes"); // Added
+      res.status(200);
+
+      const range = req.headers.range;
+      if (range) {
+        const parts = range.replace(/bytes=/, "").split("-");
+        const start = parseInt(parts[0], 10);
+        const end = parts[1] ? parseInt(parts[1], 10) : fileData.length - 1;
+        const chunkSize = end - start + 1;
+        const chunk = fileData.slice(start, end + 1);
+
+        res.setHeader(
+          "Content-Range",
+          `bytes ${start}-${end}/${fileData.length}`
+        );
+        res.setHeader("Content-Length", chunkSize);
+        res.send(chunk);
+      } else {
+        res.send(fileData);
+      }
     } catch (error) {
       console.error(error);
       res.status(500).send("Internal Server Error");
