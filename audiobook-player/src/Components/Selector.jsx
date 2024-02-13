@@ -17,7 +17,7 @@ function Selector({ setSelectedTrack, setSelectedAlbum }) {
     }
 
     return (
-        <div className="flex flex-wrap justify-center bg-inherit">
+        <div className="flex flex-wrap justify-center bg-inherit pt-16 pb-16 z-0">
             {allAlbums.map((album) =>
                 <div key={album.id} onClick={() => handleAlbumClick(album.Album)} className="relative m-5 flex w-48 max-w-xs flex-col overflow-hidden rounded-lg border border-slate-600 bg-slate-700 shadow-md">
                     <a className="relative mx-3 mt-3 flex h-40 overflow-hidden rounded-xl">

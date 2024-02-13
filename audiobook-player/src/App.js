@@ -2,6 +2,7 @@ import "./output.css";
 import Player from "./Components/Player";
 import Selector from "./Components/Selector";
 import React, { useState } from "react";
+import Header from "./Components/Header";
 
 function App() {
   const [selectedTrack, setSelectedTrack] = useState(null);
@@ -12,6 +13,7 @@ function App() {
     <div className="App bg-inherit">
       {isAuthenticated ? (
         <>
+          <Header />
           <Selector
             setSelectedAlbum={setSelectedAlbum}
             setSelectedTrack={setSelectedTrack}
