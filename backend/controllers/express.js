@@ -4,6 +4,7 @@ const {
   getAudio,
   getAlbums,
   getAlbum,
+  addAlbum,
 } = require("../database/controller");
 
 const setupExpress = (app) => {
@@ -20,7 +21,7 @@ const setupExpress = (app) => {
       res.setHeader("Content-Disposition", `inline; filename="${fileName}"`);
       res.setHeader("Content-Type", "audio/mpeg");
       res.setHeader("Content-Length", fileData.length);
-      res.setHeader("Accept-Ranges", "bytes"); // Added
+      res.setHeader("Accept-Ranges", "bytes");
       res.status(200);
 
       const range = req.headers.range;
@@ -51,6 +52,7 @@ const setupExpress = (app) => {
       return res.status(400).send("No file uploaded.");
     }
     try {
+      addAlbum(req.body.album, req.body.coverArtLink);
       req.files.forEach((file) => {
         addAudio(file, req.body.artist, req.body.album);
       });

@@ -1,26 +1,27 @@
-import "./index.css";
+import "../index.css";
 import ReactAudioPlayer from 'react-audio-player';
 import React, { useEffect, useRef, useState } from "react";
 
-function Player({ onTimeUpdate, selectedTrack }) {
+function Player({selectedTrack }) {
   const audioRef = useRef(null);
   const progressRef = useRef(null);
+  const progressValueRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(audioRef.current?.isPlaying);
   const [queuePosition, setQueuePosition] = useState(0);
+  const [volume, setVolume] = useState(1);
+
 
   useEffect(() => {
     const audioElement = audioRef.current.audioEl.current;
+    audioElement.volume = volume;
+
       const handleTimeUpdate = () => {
         const audioElement = audioRef.current.audioEl.current;
         const duration = audioElement.duration;
     
       if (!isNaN(duration) && isFinite(duration)) {
         const progress = (audioElement.currentTime / duration) * 100;
-        progressRef.current.value = progress;
-      }
-    
-      if (onTimeUpdate) {
-        onTimeUpdate(audioElement.currentTime, duration);
+        progressValueRef.current.style.width = `${progress}%`;
       }
     };
     const handlePlay = () => { setIsPlaying(true); };
@@ -30,13 +31,12 @@ function Player({ onTimeUpdate, selectedTrack }) {
     audioElement.addEventListener("play", handlePlay);
     audioElement.addEventListener("pause", handlePause);
 
-
     return () => {
       audioElement.removeEventListener("timeupdate", handleTimeUpdate);
       audioElement.removeEventListener("play", handlePlay);
       audioElement.removeEventListener("pause", handlePause);
     };
-  }, [onTimeUpdate, audioRef, selectedTrack, queuePosition, isPlaying]);
+  }, [volume, progressRef, audioRef, selectedTrack, queuePosition, isPlaying]);
 
   const playPauseToggle = () => {
     if (!selectedTrack) {
@@ -96,8 +96,11 @@ function Player({ onTimeUpdate, selectedTrack }) {
 
   const handleVolumeChange = (e) => {
     const audioElement = audioRef.current.audioEl.current;
-    audioElement.volume = e.target.value;
+    const newVolume = parseFloat(e.target.value);
+    setVolume(newVolume);
+    audioElement.volume = newVolume;
   }
+
 
   return (
     <div className='fixed bottom-0 w-full h-20 bg-slate-700'>
@@ -117,18 +120,11 @@ function Player({ onTimeUpdate, selectedTrack }) {
       <div className="song-metadata absolute left-2 top-1 flow-root text-left">
         <h1 className="text-slate-50 text-m">{selectedTrack ? selectedTrack[queuePosition].FileName.split('.')[0] : ''}</h1>
         <h1 className="text-slate-300 text-sm">{selectedTrack ? selectedTrack[queuePosition].Artist : ''}</h1>
+      </div>
+      <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700" ref={progressRef} onClick={handleProgressClick}>
+  <div className="bg-blue-600 h-2.5 rounded-full transition-all" ref={progressValueRef}></div>
+</div>
 
-      </div>
-      <div>
-        <progress
-          className="w-full h-1 bg-slate-400 rounded-lg bottom-0 left-0 absolute"
-          ref={progressRef}
-          id="progress"
-          value='0'
-          max="100"
-          onClick={handleProgressClick}
-        ></progress>
-      </div>
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import "./output.css";
-import Player from "./Player";
-import Selector from "./Selector";
+import Player from "./Components/Player";
+import Selector from "./Components/Selector";
 import React, { useState } from "react";
 
 function App() {

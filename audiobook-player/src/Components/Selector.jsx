@@ -21,7 +21,7 @@ function Selector({ setSelectedTrack, setSelectedAlbum }) {
             {allAlbums.map((album) =>
                 <div key={album.id} onClick={() => handleAlbumClick(album.Album)} className="relative m-5 flex w-48 max-w-xs flex-col overflow-hidden rounded-lg border border-slate-600 bg-slate-700 shadow-md">
                     <a className="relative mx-3 mt-3 flex h-40 overflow-hidden rounded-xl">
-                        <img className="object-cover self-center" src="https://upload.wikimedia.org/wikipedia/commons/1/14/No_Image_Available.jpg"/>
+                        <img className="object-cover self-center" src={album.Link ? album.Link : "https://upload.wikimedia.org/wikipedia/commons/1/14/No_Image_Available.jpg"}/>
                     </a>
                     <div className="mt-4 px-5 pb-5">
                         <a>

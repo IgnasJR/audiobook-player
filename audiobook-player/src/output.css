@@ -565,13 +565,6 @@ video {
   color: #61dafb;
 }
 
-progress[value] {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 100%;
-  height: 3vh;
-}
-
 .player {
   height: 30%;
   background-color: #503d50;

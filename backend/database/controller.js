@@ -128,7 +128,8 @@ const addUser = async (username, password) => {
 const getAlbums = async () => {
   return new Promise((resolve, reject) => {
     try {
-      const selectQuery = "SELECT DISTINCT Album, Artist FROM AudioFiles";
+      const selectQuery =
+        "SELECT albumName as Album, coverArtLink as Link, Artist FROM Albums";
       connection.getConnection((err, conn) => {
         if (err) {
           console.error(err);
@@ -156,8 +157,18 @@ const getAlbums = async () => {
 const getAlbum = async (album) => {
   return new Promise((resolve, reject) => {
     try {
-      const selectQuery =
-        "SELECT ID, FileName, Artist FROM AudioFiles WHERE Album = ?";
+      const selectQuery = `
+      SELECT audiofiles.FileName, audiofiles.ID, audiofiles.Artist, albums.albumName
+      FROM audiofiles 
+      INNER JOIN albums ON albums.albumName = audiofiles.album
+      WHERE albums.albumName = ?
+      ORDER BY 
+        CASE 
+          WHEN albums.album_type = 'Audiobook' THEN audiofiles.FileName 
+          ELSE NULL 
+        END,
+        audiofiles.FileName
+    `;
       connection.getConnection((err, conn) => {
         if (err) {
           console.error(err);
@@ -172,6 +183,10 @@ const getAlbum = async (album) => {
             reject(error);
             return;
           }
+          if (results.length === 0) {
+            reject("Album not found");
+            return;
+          }
           resolve(results);
         });
       });
@@ -182,4 +197,55 @@ const getAlbum = async (album) => {
   });
 };
 
-module.exports = { addAudio, getAudio, getUser, addUser, getAlbums, getAlbum };
+const addAlbum = async (albumName, coverArtLink) => {
+  try {
+    const selectQuery = "SELECT * FROM Albums WHERE albumName = ?";
+    connection.getConnection((err, conn) => {
+      if (err) {
+        console.error(err);
+        throw Error(err);
+      }
+      conn.query(selectQuery, [albumName], (error, results, fields) => {
+        conn.release();
+        if (error) {
+          console.error(error);
+          throw Error("Internal Server Error");
+        }
+        if (results.length > 0) {
+          throw Error("Album already exists");
+        }
+      });
+    });
+
+    const insertQuery =
+      "INSERT INTO Albums (albumName, coverArtLink) VALUES (?, ?)";
+    connection.getConnection((err, conn) => {
+      if (err) {
+        console.error(err);
+        throw Error(err);
+      }
+
+      const values = [albumName, coverArtLink];
+
+      conn.query(insertQuery, values, (error, results, fields) => {
+        conn.release();
+        if (error) {
+          console.error(error);
+          throw Error(error);
+        }
+      });
+    });
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+module.exports = {
+  addAudio,
+  getAudio,
+  getUser,
+  addUser,
+  getAlbums,
+  getAlbum,
+  addAlbum,
+};
