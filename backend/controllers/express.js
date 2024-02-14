@@ -22,7 +22,6 @@ const setupExpress = (app) => {
       res.setHeader("Content-Type", "audio/mpeg");
       res.setHeader("Content-Length", fileData.length);
       res.setHeader("Accept-Ranges", "bytes");
-      res.status(200);
 
       const range = req.headers.range;
       if (range) {
@@ -30,14 +29,15 @@ const setupExpress = (app) => {
         const start = parseInt(parts[0], 10);
         const end = parts[1] ? parseInt(parts[1], 10) : fileData.length - 1;
         const chunkSize = end - start + 1;
-        const chunk = fileData.slice(start, end + 1);
 
+        res.status(206);
         res.setHeader(
           "Content-Range",
           `bytes ${start}-${end}/${fileData.length}`
         );
         res.setHeader("Content-Length", chunkSize);
-        res.send(chunk);
+
+        res.end(fileData.slice(start, end + 1));
       } else {
         res.send(fileData);
       }

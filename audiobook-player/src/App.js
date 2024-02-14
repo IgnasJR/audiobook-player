@@ -1,5 +1,4 @@
 import "./output.css";
-import Player from "./Components/Player";
 import Selector from "./Components/Selector";
 import React, { useState } from "react";
 import Header from "./Components/Header";
@@ -17,8 +16,8 @@ function App() {
           <Selector
             setSelectedAlbum={setSelectedAlbum}
             setSelectedTrack={setSelectedTrack}
+            selectedTrack={selectedTrack}
           />
-          <Player selectedTrack={selectedTrack} />
         </>
       ) : (
         <h1>Not authenticated</h1>

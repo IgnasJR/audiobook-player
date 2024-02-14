@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import Player from './Player';
 
-function Selector({ setSelectedTrack, setSelectedAlbum }) {
+function Selector({ setSelectedTrack, setSelectedAlbum, selectedTrack }) {
     const [allAlbums, setAllAlbums] = useState([]);
 
     useEffect(() => {
@@ -31,6 +32,7 @@ function Selector({ setSelectedTrack, setSelectedAlbum }) {
                     </div>
                 </div>
             )}
+            {selectedTrack ? <Player selectedTrack={selectedTrack} /> : null}
         </div>
     );
 }

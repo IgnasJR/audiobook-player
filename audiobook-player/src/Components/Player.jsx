@@ -23,6 +23,7 @@ function Player({selectedTrack }) {
         const progress = (audioElement.currentTime / duration) * 100;
         progressValueRef.current.style.width = `${progress}%`;
       }
+      else progressValueRef.current.style.width = `0% !important`;
     };
     const handlePlay = () => { setIsPlaying(true); };
     const handlePause = () => { setIsPlaying(false); };
@@ -103,7 +104,7 @@ function Player({selectedTrack }) {
 
 
   return (
-    <div className='fixed bottom-0 w-full min-h-16 bg-slate-700 z-10'>
+    <div className='fixed bottom-0 w-full h-[4.5rem] bg-slate-700 z-10'>
       <ReactAudioPlayer
         src={selectedTrack ? `${window.location.protocol}//${window.location.hostname}:3001/api/retrieve?id=${selectedTrack[queuePosition].ID}` : null}
         autoPlay
@@ -122,7 +123,7 @@ function Player({selectedTrack }) {
         <h1 className="text-slate-300 text-sm">{selectedTrack ? selectedTrack[queuePosition].Artist : ''}</h1>
       </div>
       <div className="w-full fixed bottom-0 bg-gray-200 rounded-full h-2.5 dark:bg-gray-600" ref={progressRef} onClick={handleProgressClick}>
-        <div className="bg-blue-600 h-2.5 rounded-full transition-all" ref={progressValueRef}></div>
+        <div className="bg-blue-600 h-2.5 rounded-full transition-all" style={{width:0}} ref={progressValueRef}></div>
       </div>
     </div>
   );
