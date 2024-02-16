@@ -10,10 +10,9 @@ import Main from "./Pages/Main";
 import Login from "./Pages/Login";
 import NotFound from "./Pages/NotFound";
 import AddBook from "./Pages/AddBook";
+import Header from "./Components/Header";
 
 function App() {
-  const [selectedTrack, setSelectedTrack] = useState(null);
-  const [selectedAlbum, setSelectedAlbum] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(true);
 
   return (
@@ -23,13 +22,7 @@ function App() {
           path="/"
           element={
             isAuthenticated ? (
-              <Main
-                setIsAuthenticated={setIsAuthenticated}
-                selectedTrack={selectedTrack}
-                selectedAlbum={selectedAlbum}
-                setSelectedAlbum={setSelectedAlbum}
-                setSelectedTrack={setSelectedTrack}
-              />
+              <Main setIsAuthenticated={setIsAuthenticated} />
             ) : (
               <Navigate to="/login" />
             )
