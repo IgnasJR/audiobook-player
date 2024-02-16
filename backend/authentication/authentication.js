@@ -1,13 +1,11 @@
-const argon2 = require("argon2");
+const bcrypt = require("bcrypt");
 const { generateToken } = require("./jwt");
-var crypto = require("crypto");
 
-const hashPassword = async (password, username) => {
-  return await argon2.hash(password);
+const hashPassword = async (password) => {
+  const saltRounds = 10;
+  return await bcrypt.hash(password, saltRounds);
 };
 
 const comparePassword = async (password, hash) => {
-  return await argon2.verify(hash, password);
+  return await bcrypt.compare(password, hash);
 };
-
-module.exports = { hashPassword, comparePassword };
