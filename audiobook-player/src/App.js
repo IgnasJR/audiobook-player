@@ -1,28 +1,64 @@
 import "./output.css";
-import Selector from "./Components/Selector";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
 import React, { useState } from "react";
-import Header from "./Components/Header";
+import Main from "./Pages/Main";
+import Login from "./Pages/Login";
+import NotFound from "./Pages/NotFound";
+import AddBook from "./Pages/AddBook";
 
 function App() {
   const [selectedTrack, setSelectedTrack] = useState(null);
   const [selectedAlbum, setSelectedAlbum] = useState(null);
-  let isAuthenticated = true;
+  const [isAuthenticated, setIsAuthenticated] = useState(true);
 
   return (
-    <div className="App bg-inherit">
-      {isAuthenticated ? (
-        <>
-          <Header />
-          <Selector
-            setSelectedAlbum={setSelectedAlbum}
-            setSelectedTrack={setSelectedTrack}
-            selectedTrack={selectedTrack}
-          />
-        </>
-      ) : (
-        <h1>Not authenticated</h1>
-      )}
-    </div>
+    <Router>
+      <Routes>
+        <Route
+          path="/"
+          element={
+            isAuthenticated ? (
+              <Main
+                setIsAuthenticated={setIsAuthenticated}
+                selectedTrack={selectedTrack}
+                selectedAlbum={selectedAlbum}
+                setSelectedAlbum={setSelectedAlbum}
+                setSelectedTrack={setSelectedTrack}
+              />
+            ) : (
+              <Navigate to="/login" />
+            )
+          }
+        />
+        <Route
+          path="/login"
+          element={
+            !isAuthenticated ? (
+              <Login setIsAuthenticated={setIsAuthenticated} />
+            ) : (
+              <Navigate to="/" />
+            )
+          }
+        />
+        <Route
+          path="/addbook"
+          element={
+            !isAuthenticated ? (
+              <Login setIsAuthenticated={setIsAuthenticated} />
+            ) : (
+              <AddBook setIsAuthenticated={setIsAuthenticated} />
+            )
+          }
+        />
+        <Route path="/404" element={<NotFound />} />
+        <Route path="/*" element={<Navigate to="/404" />} />
+      </Routes>
+    </Router>
   );
 }
 
