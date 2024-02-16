@@ -1,4 +1,8 @@
 const { connection } = require("./mysql");
+const {
+  hashPassword,
+  comparePassword,
+} = require("../authentication/authentication");
 
 const addAudio = async (file, artist, album) => {
   console.log("adding", file.originalname, artist, album, "to database");
@@ -102,27 +106,43 @@ const getUser = async (username) => {
 };
 
 const addUser = async (username, password) => {
-  try {
-    const insertQuery = "INSERT INTO Users (username, password) VALUES (?, ?)";
+  const selectQuery = "SELECT * FROM Users WHERE user = ?";
+  const insertQuery = "INSERT INTO Users (user, pass) VALUES (?, ?)";
+
+  return new Promise((resolve, reject) => {
     connection.getConnection((err, conn) => {
       if (err) {
         console.error(err);
-        throw Error(err);
+        reject(err);
       }
 
-      const values = [username, password];
-
-      conn.query(insertQuery, values, (error, results, fields) => {
-        conn.release();
+      conn.query(selectQuery, [username], async (error, results) => {
         if (error) {
           console.error(error);
-          throw Error(error);
+          conn.release();
+          reject("Internal Server Error");
+        }
+
+        if (results.length > 0) {
+          conn.release();
+          reject("User already exists");
+        } else {
+          const hashedPassword = await hashPassword(password);
+          console.log(password, hashedPassword);
+          const values = [username, hashedPassword];
+          conn.query(insertQuery, values, (error, results) => {
+            conn.release();
+            if (error) {
+              console.error(error);
+              reject(error);
+            } else {
+              resolve(results);
+            }
+          });
         }
       });
     });
-  } catch (error) {
-    console.error(error);
-  }
+  });
 };
 
 const getAlbums = async () => {

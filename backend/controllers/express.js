@@ -5,6 +5,7 @@ const {
   getAlbums,
   getAlbum,
   addAlbum,
+  addUser,
 } = require("../database/controller");
 
 const setupExpress = (app) => {
@@ -86,6 +87,21 @@ const setupExpress = (app) => {
     } catch (error) {
       console.error(error);
       res.status(500).send("Internal Server Error");
+    }
+  });
+
+  app.post("/api/register", async (req, res) => {
+    try {
+      const { username, password } = req.body;
+      await addUser(username, password);
+      res.status(200).send("Success");
+    } catch (error) {
+      console.error(error);
+      if (error.message === "User already exists") {
+        res.status(400).send("User already exists");
+      } else {
+        res.status(500).send("Internal Server Error");
+      }
     }
   });
 };
