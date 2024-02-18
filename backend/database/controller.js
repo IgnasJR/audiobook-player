@@ -108,8 +108,11 @@ const getUser = async (username) => {
 const addUser = async (username, password) => {
   const selectQuery = "SELECT * FROM Users WHERE user = ?";
   const insertQuery = "INSERT INTO Users (user, pass) VALUES (?, ?)";
-
   return new Promise((resolve, reject) => {
+    if (process.env.Registration_Disabled === "true") {
+      reject(new Error("Registration Disabled"));
+      // return;
+    }
     connection.getConnection((err, conn) => {
       if (err) {
         console.error(err);
@@ -120,12 +123,12 @@ const addUser = async (username, password) => {
         if (error) {
           console.error(error);
           conn.release();
-          reject("Internal Server Error");
+          reject(new Error("Internal Server Error"));
         }
 
         if (results.length > 0) {
           conn.release();
-          reject("User already exists");
+          reject(new Error("User already exists"));
         } else {
           const hashedPassword = await hashPassword(password);
           console.log(password, hashedPassword);

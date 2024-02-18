@@ -11,7 +11,7 @@ const verifyToken = (token) => {
 };
 
 const decodeToken = (token) => {
-  return jsonwebtoken.decode(token);
+  return jsonwebtoken.decode(token).user;
 };
 
 module.exports = { generateToken, verifyToken, decodeToken };

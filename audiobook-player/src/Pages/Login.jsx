@@ -2,9 +2,12 @@ import React, { useState } from 'react';
 import Notification from '../Components/Notification';
 
 function Login({setIsAuthenticated}) {
+    const [error, setError] = useState(null); 
     const [isLogin, setIsLogin] = useState(true);
     const [notificationContent , setNotificationContent] = useState("test");
     const [notificationType, setNotificationType] = useState("error");
+
+    setTimeout(() => setError(false), 4000);
 
     const handleLoginClick = () => {
         setIsLogin(true);
@@ -20,13 +23,19 @@ function Login({setIsAuthenticated}) {
     };
 
     const handleLogin = () => {
+        if (document.getElementById("email").value === "" || document.getElementById("password").value === "") {
+            setNotificationContent("Please fill out all fields");
+            setNotificationType("error");
+            setError(true);
+            return;
+        }
         setIsAuthenticated(true);
     };
 
 
     return (
         <div>
-            <Notification notificationContent={notificationContent} notificationType={notificationType}/>
+            {error ? <Notification notificationContent={notificationContent} notificationType={notificationType}></Notification> : null }
             <div className={`bg-inherit m-auto h-4/5 shadow-slate-500 border-2 border-slate-700 rounded-lg p-5 bg-slate-700 mt-[5%] sm:ml-16 sm:mr-16`}>
                 <h1 className="text-4xl text-slate-100 pt-5">PlayerJR</h1>
                 <div className="flex justify-center items-stretch relative flex-row">

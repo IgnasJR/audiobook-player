@@ -96,12 +96,34 @@ const setupExpress = (app) => {
       await addUser(username, password);
       res.status(200).send("Success");
     } catch (error) {
-      console.error(error);
       if (error.message === "User already exists") {
         res.status(400).send("User already exists");
+      } else if (error.message === "Registration Disabled") {
+        res.status(403).send("Registration Disabled");
       } else {
         res.status(500).send("Internal Server Error");
       }
+    }
+  });
+
+  app.post("/api/login", async (req, res) => {
+    try {
+      const { username, password } = req.body;
+      const user = await getUser(username);
+      if (!user) {
+        res.status(400).send("User not found");
+        return;
+      }
+      const passwordMatch = await comparePassword(password, user.password);
+      if (!passwordMatch) {
+        res.status(400).send("Password incorrect");
+        return;
+      }
+      const token = generateToken(username);
+      res.status(200).send(token);
+    } catch (error) {
+      console.error(error);
+      res.status(500).send("Internal Server Error");
     }
   });
 };
