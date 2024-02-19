@@ -123,7 +123,7 @@ function Player({selectedTrack }) {
         <h1 className="text-slate-300 text-sm">{selectedTrack ? selectedTrack[queuePosition].Artist : ''}</h1>
       </div>
       <div className="w-full fixed bottom-0 bg-gray-200 rounded-full h-2.5 dark:bg-gray-600" ref={progressRef} onClick={handleProgressClick}>
-        <div className="bg-blue-600 h-2.5 rounded-full transition-all" style={{width:0}} ref={progressValueRef}></div>
+        <div className="bg-blue-600 h-2.5 rounded-full transition-all duration-100 hover:cursor-pointer" style={{width:0}} ref={progressValueRef}></div>
       </div>
     </div>
   );

@@ -25,7 +25,7 @@ return (
         <a class="pl-6 inline-block text-m text-white hover:text-slate-400">Add Book</a>
       </NavLink>
     </div>
-    <a class="inline-block text-m text-white hover:text-slate-400" onClick={logout}>Logout</a>
+    <a class="inline-block text-m text-white hover:text-slate-400 hover:cursor-pointer" onClick={logout}>Logout</a>
   </nav>
 </div>
 );

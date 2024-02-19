@@ -53,7 +53,7 @@ const setupExpress = (app) => {
       return res.status(400).send("No file uploaded.");
     }
     try {
-      addAlbum(req.body.album, req.body.coverArtLink);
+      addAlbum(req.body.album, req.body.coverArtLink, req.body.artist);
       req.files.forEach((file) => {
         addAudio(file, req.body.artist, req.body.album);
       });

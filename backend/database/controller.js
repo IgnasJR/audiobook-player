@@ -220,7 +220,7 @@ const getAlbum = async (album) => {
   });
 };
 
-const addAlbum = async (albumName, coverArtLink) => {
+const addAlbum = async (albumName, coverArtLink, artist) => {
   try {
     const selectQuery = "SELECT * FROM Albums WHERE albumName = ?";
     connection.getConnection((err, conn) => {
@@ -241,14 +241,14 @@ const addAlbum = async (albumName, coverArtLink) => {
     });
 
     const insertQuery =
-      "INSERT INTO Albums (albumName, coverArtLink) VALUES (?, ?)";
+      "INSERT INTO Albums (albumName, coverArtLink, Artist) VALUES (?, ?, ?)";
     connection.getConnection((err, conn) => {
       if (err) {
         console.error(err);
         throw Error(err);
       }
 
-      const values = [albumName, coverArtLink];
+      const values = [albumName, coverArtLink, artist];
 
       conn.query(insertQuery, values, (error, results, fields) => {
         conn.release();

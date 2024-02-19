@@ -13,7 +13,7 @@ import AddBook from "./Pages/AddBook";
 import Header from "./Components/Header";
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(true);
 
   return (
     <Router>

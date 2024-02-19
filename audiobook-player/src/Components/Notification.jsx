@@ -1,9 +1,16 @@
 import React, { useState } from 'react';
-function Notification({ notificationContent, notificationType }) {
+function Notification({ notificationContent, notificationType, headerPresent }) {
 const [isVisible, setIsVisible] = useState(true);
-setTimeout(() => setIsVisible(false), 3000);
-    return (
-        <div className={`absolute top-0 p-3 duration-500 font-bold text-xl w-full transition-opacity ease-out ${notificationType === 'error' ? 'bg-red-500' : 'bg-yellow-400'} ${isVisible ? 'opacity-100' : 'opacity-0' }`}>
+if (isVisible) {
+    setTimeout(() => setIsVisible(false), 4000);
+}
+return (
+        <div className={`absolute p-3 duration-500 font-bold text-xl w-full transition-opacity ease-out 
+        ${notificationType === 'error' ? 'bg-red-500' : 
+            notificationType === 'success' ? 'bg-green-500' : 
+            notificationType=== 'warning' ? 'bg-yellow-500' : null} 
+        ${isVisible ? 'opacity-100' : 'opacity-0' } 
+        ${headerPresent ? 'top-16' : 'top-0'}`}>
             <p>{notificationContent}</p>
         </div>
     );
