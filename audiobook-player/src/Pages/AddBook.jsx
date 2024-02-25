@@ -1,20 +1,29 @@
 import React from 'react';
 import Header from '../Components/Header';
 import Notification from '../Components/Notification';
+import Loading from '../Components/Loading';
 import { useState } from 'react';
 function AddBook({setIsAuthenticated}){
     const [error, setError] = useState(null); 
-    const [notificationContent , setNotificationContent] = React.useState("test");
-    const [notificationType, setNotificationType] = React.useState("error");
+    const [notificationContent , setNotificationContent] = React.useState("");
+    const [notificationType, setNotificationType] = React.useState("");
+    const [isLoading, setIsLoading] = useState();
     setTimeout (() => setError(false), 3500);
 
-    const UploadFiles = () => {
-        if (document.getElementById('album').value === "" || document.getElementById('artist').value === "" || document.getElementById('fileInput').count < 1) {
+    const UploadFiles = async () => {
+        if (isLoading) return;
+        await setIsLoading(true);
+        if (document.getElementById('album').value === "" || 
+            document.getElementById('artist').value === "" || 
+            document.getElementById('fileInput').count < 1) {
+            
             setNotificationContent("Please fill out all fields");
             setNotificationType("warning");
             setError(true);
+            setIsLoading(false);
             return;
         }
+        
         const albumInput = document.getElementById('album').value;
         const artistInput = document.getElementById('artist').value;
         const coverArtLinkInput = document.getElementById('cover').value;
@@ -24,31 +33,37 @@ function AddBook({setIsAuthenticated}){
         formData.append('album', albumInput);
         formData.append('artist', artistInput);
         formData.append('coverArtLink', coverArtLinkInput);
+        
         for (let i = 0; i < fileInput.length; i++) {
             formData.append('files', fileInput[i]);
         }
-
-        fetch(`${window.location.protocol}//${window.location.hostname}:3001/api/upload`, {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return response.text();
-        })
-        .then(data => {
-            console.log(data); // Success message from the server
-        })
-        .catch(error => {
-            console.error('There was a problem with your fetch operation:', error);
-        });
-    }
     
-
+        try {
+            const response = await fetch(`${window.location.protocol}//${window.location.hostname}:3001/api/upload`, {
+                method: 'POST',
+                body: formData
+            });
+    
+            if (!response.ok) {
+                const text = await response.text();
+                throw new Error(text);
+            }
+            const data = await response.text();
+            setNotificationContent(data);
+            setNotificationType("success");
+            setError(true);
+        } catch (error) {
+            setNotificationContent(error.message);
+            setNotificationType("error");
+            setError(true);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+    
     return (
         <div className="bg-inherit pt-16">
+            {isLoading ? <Loading/> : null}
             <Header setIsAuthenticated={setIsAuthenticated} />
             {error ? <Notification headerPresent = {true} notificationContent={notificationContent} notificationType={notificationType}></Notification> : null }
             <div className='bg-inherit m-auto h-4/5 shadow-slate-500 border-2 border-slate-700 rounded-lg p-5 bg-slate-700 mt-[5%] sm:ml-32 sm:mr-32'>                    
@@ -61,7 +76,7 @@ function AddBook({setIsAuthenticated}){
                 <input className='w-full bg-slate-900 text-white rounded-md h-9 text-lg p-2' type="url" id="cover" />
                 <p className="text-slate-300">Contents</p>
                 <input class="block w-full text-sm text-white rounded-lg cursor-pointer bg-slate-900" multiple type="file" id="fileInput"/>
-                <button className="bg-slate-500 text-slate-100 rounded-lg p-3 font-bold mt-5 pl-6 pr-6" onClick={UploadFiles}>Upload</button>
+                <button className="bg-slate-500 text-slate-100 rounded-lg p-3 font-bold mt-5 pl-6 pr-6" disabled={isLoading} onClick={UploadFiles}>Upload</button>
             </div>            
         </div>
     );

@@ -195,7 +195,7 @@ const getAlbum = async (album) => {
       connection.getConnection((err, conn) => {
         if (err) {
           console.error(err);
-          reject(err);
+          reject("Internal Server Error", err);
           return;
         }
 
@@ -220,23 +220,27 @@ const getAlbum = async (album) => {
   });
 };
 
-const addAlbum = async (albumName, coverArtLink, artist) => {
-  try {
+const addAlbum = (albumName, coverArtLink, artist) => {
+  return new Promise((resolve, reject) => {
     const selectQuery = "SELECT * FROM Albums WHERE albumName = ?";
     connection.getConnection((err, conn) => {
       if (err) {
         console.error(err);
-        throw Error(err);
+        reject(new Error(err));
+        return;
       }
       conn.query(selectQuery, [albumName], (error, results, fields) => {
         conn.release();
         if (error) {
           console.error(error);
-          throw Error("Internal Server Error");
+          reject(new Error("Internal Server Error"));
+          return;
         }
         if (results.length > 0) {
-          throw Error("Album already exists");
+          reject(new Error("Album already exists"));
+          return;
         }
+        resolve();
       });
     });
 
@@ -245,7 +249,8 @@ const addAlbum = async (albumName, coverArtLink, artist) => {
     connection.getConnection((err, conn) => {
       if (err) {
         console.error(err);
-        throw Error(err);
+        reject(new Error(err));
+        return;
       }
 
       const values = [albumName, coverArtLink, artist];
@@ -254,13 +259,13 @@ const addAlbum = async (albumName, coverArtLink, artist) => {
         conn.release();
         if (error) {
           console.error(error);
-          throw Error(error);
+          reject(new Error(error));
+          return;
         }
+        resolve();
       });
     });
-  } catch (error) {
-    console.error(error);
-  }
+  });
 };
 
 module.exports = {

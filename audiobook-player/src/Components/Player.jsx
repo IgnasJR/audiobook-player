@@ -2,7 +2,7 @@ import "../index.css";
 import ReactAudioPlayer from 'react-audio-player';
 import React, { useEffect, useRef, useState } from "react";
 
-function Player({selectedTrack }) {
+function Player({selectedTrack, setNotificationContent, setNotificationType, setHeaderPresent }) {
   const audioRef = useRef(null);
   const progressRef = useRef(null);
   const progressValueRef = useRef(null);
@@ -14,7 +14,6 @@ function Player({selectedTrack }) {
   useEffect(() => {
     const audioElement = audioRef.current.audioEl.current;
     audioElement.volume = volume;
-
       const handleTimeUpdate = () => {
         const audioElement = audioRef.current.audioEl.current;
         const duration = audioElement.duration;
@@ -40,16 +39,21 @@ function Player({selectedTrack }) {
   }, [volume, progressRef, audioRef, selectedTrack, queuePosition, isPlaying]);
 
   const playPauseToggle = () => {
-    if (!selectedTrack) {
-      return;
-    }
-    const audioElement = audioRef.current.audioEl.current;
-
-    if (isPlaying) {
-      audioElement.pause();
-    } else {
-      audioElement.play().then(() => {
-      });
+    try {
+      if (!selectedTrack) {
+        return;
+      }
+      const audioElement = audioRef.current.audioEl.current;
+      if (isPlaying && !audioElement.paused) {
+        audioElement.pause();
+      } else if (!isPlaying && audioElement.paused) {
+        audioElement.play();
+      }
+    } catch (error) {
+      console.log(error);
+      setNotificationContent('Error playing track');
+      setNotificationType('warning');
+      setHeaderPresent(true);
     }
   };
 
@@ -62,7 +66,8 @@ function Player({selectedTrack }) {
     }
     audioRef.current.audioEl.current.pause();
     setAudioTime(0);
-  }
+  };
+
   const handlePreviousInQueue = () => {
     if (!selectedTrack) {
       return;
@@ -72,36 +77,43 @@ function Player({selectedTrack }) {
     }
     audioRef.current.audioEl.current.pause();
     setAudioTime(0);
-  }
+  };
 
   const handleProgressClick = (e) => {
     if (!selectedTrack) {
       return;
     }
-    const audioElement = audioRef.current.audioEl.current;
-    const progressElement = progressRef.current;
-    const clickPosition = e.pageX - progressElement.getBoundingClientRect().left;
-    const percentage = clickPosition / progressElement.offsetWidth;
-    const newTime = percentage * audioElement.duration;
-    setAudioTime(newTime);
+    try {
+      const audioElement = audioRef.current.audioEl.current;
+      const progressElement = progressRef.current;
+      const clickPosition = e.pageX - progressElement.getBoundingClientRect().left;
+      const percentage = clickPosition / progressElement.offsetWidth;
+      const newTime = percentage * audioElement.duration;
+      setAudioTime(newTime);
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   const setAudioTime = (time) => {
-    const audioElement = audioRef.current.audioEl.current;
-
-    console.log('current time ', audioElement.currentTime, audioElement.src)
-    console.log('setting time to ', time, ' seconds');
-    
-    audioElement.currentTime = time;
+    try {
+      const audioElement = audioRef.current.audioEl.current;
+      audioElement.currentTime = time;
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   const handleVolumeChange = (e) => {
-    const audioElement = audioRef.current.audioEl.current;
-    const newVolume = parseFloat(e.target.value);
-    setVolume(newVolume);
-    audioElement.volume = newVolume;
-  }
-
+    try {
+      const audioElement = audioRef.current.audioEl.current;
+      const newVolume = parseFloat(e.target.value);
+      setVolume(newVolume);
+      audioElement.volume = newVolume;
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   return (
     <div className='fixed bottom-0 w-full h-[4.5rem] bg-slate-700 z-10'>

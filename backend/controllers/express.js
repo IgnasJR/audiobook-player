@@ -48,18 +48,32 @@ const setupExpress = (app) => {
     }
   });
 
-  app.post("/api/upload", upload.array("files"), (req, res) => {
+  app.post("/api/upload", upload.array("files"), async (req, res) => {
     if (!req.files || req.files.length === 0) {
       return res.status(400).send("No file uploaded.");
     }
+
     try {
-      addAlbum(req.body.album, req.body.coverArtLink, req.body.artist);
-      req.files.forEach((file) => {
-        addAudio(file, req.body.artist, req.body.album);
-      });
+      let uploadedFiles = [];
+      for (let i = 0; i < req.files.length; i++) {
+        uploadedFiles.push({
+          originalname: req.files[i].originalname,
+          buffer: req.files[i].buffer,
+        });
+      }
+
+      if (req.files.length !== uploadedFiles.length) {
+        throw new Error("Files not uploaded");
+      }
+
+      await addAlbum(req.body.album, req.body.coverArtLink, req.body.artist);
+
+      for (let i = 0; i < uploadedFiles.length; i++) {
+        await addAudio(uploadedFiles[i], req.body.artist, req.body.album);
+      }
     } catch (error) {
-      res.status(400).send(error);
-      return;
+      console.error(error);
+      res.status(400).send("Server unable to process files. Please try again.");
     }
     res.status(200).send("Success");
   });

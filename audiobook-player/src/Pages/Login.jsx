@@ -7,7 +7,7 @@ function Login({setIsAuthenticated}) {
     const [notificationContent , setNotificationContent] = useState("test");
     const [notificationType, setNotificationType] = useState("error");
 
-    setTimeout(() => setError(false), 4000);
+    setTimeout(() => setError(false), 3500);
 
     const handleLoginClick = () => {
         setIsLogin(true);

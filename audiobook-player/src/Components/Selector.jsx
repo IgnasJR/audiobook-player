@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Player from './Player';
 
-function Selector({ setSelectedTrack, setSelectedAlbum, selectedTrack }) {
+function Selector({ setSelectedTrack, setSelectedAlbum, selectedTrack, setNotificationContent, setNotificationType, setHeaderPresent}) {
     const [allAlbums, setAllAlbums] = useState([]);
 
     useEffect(() => {
@@ -30,7 +30,13 @@ function Selector({ setSelectedTrack, setSelectedAlbum, selectedTrack }) {
                     </div>
                 </div>
             )}
-            {selectedTrack ? <Player selectedTrack={selectedTrack} /> : null}
+            {selectedTrack ? 
+            <Player 
+                selectedTrack={selectedTrack} 
+                setNotificationContent={setNotificationContent} 
+                setNotificationType={setNotificationType} 
+                setHeaderPresent={setHeaderPresent} 
+            /> : null}
         </div>
     );
 }

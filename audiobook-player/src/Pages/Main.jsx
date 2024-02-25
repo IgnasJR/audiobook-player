@@ -3,17 +3,33 @@ import { useState } from "react";
 import Header from "../Components/Header";
 import Selector from "../Components/Selector";
 import Player from "../Components/Player";
+import Notification from "../Components/Notification";
 
 function Main({ setIsAuthenticated}) {
   const [selectedTrack, setSelectedTrack] = useState(null);
   const [selectedAlbum, setSelectedAlbum] = useState(null);
+  const [notificationContent, setNotificationContent] = useState("awdadw");
+  const [notificationType, setNotificationType] = useState("error");
+  const [headerPresent, setHeaderPresent] = useState(true);
+  setTimeout (() => setHeaderPresent(false), 3500);
+
   return (
     <div className="App bg-inherit">
+      {notificationContent ? (
+        <Notification
+          notificationContent={notificationContent}
+          notificationType={notificationType}
+          headerPresent={headerPresent}
+        />
+      ) : null}
       <Header setIsAuthenticated={setIsAuthenticated} />
       <Selector
         setSelectedAlbum={setSelectedAlbum}
         setSelectedTrack={setSelectedTrack}
         selectedTrack={selectedTrack}
+        setNotificationContent={setNotificationContent}
+        setNotificationType={setNotificationType}
+        setHeaderPresent={setHeaderPresent}
       />
     </div>
   );

@@ -5,7 +5,7 @@ if (isVisible) {
     setTimeout(() => setIsVisible(false), 4000);
 }
 return (
-        <div className={`absolute p-3 duration-500 font-bold text-xl w-full transition-opacity ease-out 
+        <div className={`absolute p-3 duration-500 font-bold text-xl w-full transition-opacity ease-out z-20
         ${notificationType === 'error' ? 'bg-red-500' : 
             notificationType === 'success' ? 'bg-green-500' : 
             notificationType=== 'warning' ? 'bg-yellow-500' : null} 
