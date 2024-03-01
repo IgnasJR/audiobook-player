@@ -23,14 +23,74 @@ function Login({setIsAuthenticated}) {
     };
 
     const handleLogin = () => {
-        if (document.getElementById("email").value === "" || document.getElementById("password").value === "") {
+        if (document.getElementById("username").value === "" || document.getElementById("password").value === "") {
             setNotificationContent("Please fill out all fields");
             setNotificationType("error");
             setError(true);
             return;
         }
-        setIsAuthenticated(true);
+        fetch(`${window.location.protocol}//${window.location.hostname}:3001/api/login`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                username: document.getElementById("username").value,
+                password: document.getElementById("password").value
+            })
+        }).then(res => {
+            if (res.status === 200) {
+                setIsAuthenticated(true);
+            } else if (res.status === 400) {
+                setNotificationContent("Invalid username or password");
+                setNotificationType("error");
+                setError(true);
+            } else {
+                setNotificationContent("Internal Server Error");
+                setNotificationType("error");
+                setError(true);
+            }
+        });        
     };
+
+    const handleRegister = () => {
+        if (document.getElementById("username").value === "" || document.getElementById("password").value === "" || document.getElementById("confirmPassword").value === "") {
+            setNotificationContent("Please fill out all fields");
+            setNotificationType("error");
+            setError(true);
+            return;
+        }
+        if (document.getElementById("password").value !== document.getElementById("confirmPassword").value) {
+            setNotificationContent("Passwords do not match");
+            setNotificationType("error");
+            setError(true);
+            return;
+        }
+        fetch(`${window.location.protocol}//${window.location.hostname}:3001/api/register`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                username: document.getElementById("username").value,
+                password: document.getElementById("password").value
+            })
+        }).then(res => {
+            if (res.status === 200) {
+                setNotificationContent("Account created successfully");
+                setNotificationType("success");
+                setError(true);
+            } else if (res.status === 400) {
+                setNotificationContent("User already exists");
+                setNotificationType("error");
+                setError(true);
+            } else {
+                setNotificationContent("Internal Server Error");
+                setNotificationType("error");
+                setError(true);
+            }
+    }
+    )}
 
 
     return (
@@ -45,16 +105,23 @@ function Login({setIsAuthenticated}) {
                 </div>
                 {isLogin ? <div className='flex flex-col pt-10'>
                     <p className="text-2xl text-slate-300">Login</p>
-                    <p className="text-slate-300">Email</p>
-                    <input className='w-full bg-slate-900 text-white rounded-md h-9 text-lg p-2' type="email" name="email" id="email" />
+                    <p className="text-slate-300">Username</p>
+                    <input className='w-full bg-slate-900 text-white rounded-md h-9 text-lg p-2' type="text" name="username" id="username" />
                     <p className="text-slate-300">Password</p>
                     <input className='w-full bg-slate-900 text-white rounded-md h-9 text-lg p-2' type="password" name="password" id="password" />
-                    <p className="text-sm hover:text-blue-300 cursor-pointer pt-2 pb-2" onClick={handleForgotPasswordClick}>Forgot Password?</p>
+                    <p className="text-slate-300 text-sm hover:text-blue-400 cursor-pointer pt-2 pb-2" onClick={handleForgotPasswordClick}>Forgot Password?</p>
                     <button className="bg-slate-500 text-slate-100 rounded-lg p-3 font-bold" onClick={handleLogin}>Login</button>
                 </div>:
-                <div>
-
-
+                <div className='flex flex-col pt-10'>
+                    <p className="text-2xl text-slate-300">Signup</p>
+                    <p className="text-slate-300">Username</p>
+                    <input className='w-full bg-slate-900 text-white rounded-md h-9 text-lg p-2' type="text" name="username" id="username" />
+                    <p className="text-slate-300">Password</p>
+                    <input className='w-full bg-slate-900 text-white rounded-md h-9 text-lg p-2' type="password" name="password" id="password" />
+                    <p className="text-slate-300">Confirm Password</p>
+                    <input className='w-full bg-slate-900 text-white rounded-md h-9 text-lg p-2 mb-2' type="password" name="password" id="confirmPassword" />
+                    <button className="bg-slate-500 text-slate-100 rounded-lg p-3 font-bold" onClick={handleRegister}>Signup</button>
+                
                 </div>}
 
             </div>

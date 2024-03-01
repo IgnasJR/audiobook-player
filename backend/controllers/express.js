@@ -6,7 +6,10 @@ const {
   getAlbum,
   addAlbum,
   addUser,
+  getUser,
 } = require("../database/controller");
+const { comparePassword } = require("../authentication/authentication");
+const { generateToken } = require("../authentication/jwt");
 
 const setupExpress = (app) => {
   app.get("/api/retrieve", async (req, res) => {
@@ -124,6 +127,7 @@ const setupExpress = (app) => {
     try {
       const { username, password } = req.body;
       const user = await getUser(username);
+      console.log(user);
       if (!user) {
         res.status(400).send("User not found");
         return;

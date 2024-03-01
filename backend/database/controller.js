@@ -73,7 +73,7 @@ const getAudio = async (id) => {
 const getUser = async (username) => {
   return new Promise((resolve, reject) => {
     try {
-      const selectQuery = "SELECT * FROM Users WHERE username = ?";
+      const selectQuery = "SELECT * FROM Users WHERE user = ?";
       connection.getConnection((err, conn) => {
         if (err) {
           console.error(err);
@@ -93,8 +93,8 @@ const getUser = async (username) => {
             return;
           }
           resolve({
-            username: results[0].username,
-            password: results[0].password,
+            username: results[0].user,
+            password: results[0].pass,
           });
         });
       });
@@ -111,7 +111,6 @@ const addUser = async (username, password) => {
   return new Promise((resolve, reject) => {
     if (process.env.Registration_Disabled === "true") {
       reject(new Error("Registration Disabled"));
-      // return;
     }
     connection.getConnection((err, conn) => {
       if (err) {
