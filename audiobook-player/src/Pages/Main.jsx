@@ -2,15 +2,14 @@ import React from "react";
 import { useState } from "react";
 import Header from "../Components/Header";
 import Selector from "../Components/Selector";
-import Player from "../Components/Player";
 import Notification from "../Components/Notification";
 
 function Main({ setIsAuthenticated}) {
   const [selectedTrack, setSelectedTrack] = useState(null);
   const [selectedAlbum, setSelectedAlbum] = useState(null);
-  const [notificationContent, setNotificationContent] = useState("awdadw");
+  const [notificationContent, setNotificationContent] = useState("");
   const [notificationType, setNotificationType] = useState("error");
-  const [headerPresent, setHeaderPresent] = useState(true);
+  const [headerPresent, setHeaderPresent] = useState(false);
   setTimeout (() => setHeaderPresent(false), 3500);
 
   return (
