@@ -10,10 +10,11 @@ import Main from "./Pages/Main";
 import Login from "./Pages/Login";
 import NotFound from "./Pages/NotFound";
 import AddBook from "./Pages/AddBook";
-import Header from "./Components/Header";
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(true);
+  const [username, setUsername] = useState(null);
+  const [token, setToken] = useState(null);
+  const [role, setRole] = useState(null);
 
   return (
     <Router>
@@ -21,30 +22,44 @@ function App() {
         <Route
           path="/"
           element={
-            isAuthenticated ? (
-              <Main setIsAuthenticated={setIsAuthenticated} />
-            ) : (
-              <Navigate to="/login" />
-            )
+            <Main
+              username={username}
+              token={token}
+              role={role}
+              setUsername={setUsername}
+              setToken={setToken}
+              setRole={setRole}
+            />
           }
         />
         <Route
           path="/login"
           element={
-            !isAuthenticated ? (
-              <Login setIsAuthenticated={setIsAuthenticated} />
-            ) : (
-              <Navigate to="/" />
-            )
+            <Login
+              setUsername={setUsername}
+              setToken={setToken}
+              setRole={setRole}
+            />
           }
         />
         <Route
           path="/addbook"
           element={
-            !isAuthenticated ? (
-              <Login setIsAuthenticated={setIsAuthenticated} />
+            token === null ? (
+              <Login
+                setUsername={setUsername}
+                setToken={setToken}
+                setRole={setRole}
+              />
             ) : (
-              <AddBook setIsAuthenticated={setIsAuthenticated} />
+              <AddBook
+                username={username}
+                token={token}
+                role={role}
+                setUsername={setUsername}
+                setToken={setToken}
+                setRole={setRole}
+              />
             )
           }
         />

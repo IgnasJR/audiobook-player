@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import Notification from '../Components/Notification';
+import { useNavigate } from 'react-router-dom';
 
-function Login({setIsAuthenticated}) {
+function Login({setUsername, setToken, setRole}) {
+    const navigate = useNavigate();
     const [error, setError] = useState(null); 
     const [isLogin, setIsLogin] = useState(true);
     const [notificationContent , setNotificationContent] = useState("test");
@@ -40,7 +42,7 @@ function Login({setIsAuthenticated}) {
             })
         }).then(res => {
             if (res.status === 200) {
-                setIsAuthenticated(true);
+                return res.json();
             } else if (res.status === 400) {
                 setNotificationContent("Invalid username or password");
                 setNotificationType("error");
@@ -50,7 +52,15 @@ function Login({setIsAuthenticated}) {
                 setNotificationType("error");
                 setError(true);
             }
-        });        
+        }).then(data => {
+            const { username, token, role } = data;
+            setRole(role);
+            setUsername(username);
+            setToken(token);
+            navigate("/");
+        }).catch(error => {
+            console.error("Error:", error);
+        });
     };
 
     const handleRegister = () => {

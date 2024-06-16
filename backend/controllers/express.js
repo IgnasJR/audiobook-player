@@ -8,7 +8,10 @@ const {
   addUser,
   getUser,
 } = require("../database/controller");
-const { comparePassword } = require("../authentication/authentication");
+const {
+  comparePassword,
+  hashPassword,
+} = require("../authentication/authentication");
 const { generateToken } = require("../authentication/jwt");
 
 const setupExpress = (app) => {
@@ -128,22 +131,16 @@ const setupExpress = (app) => {
       const { username, password } = req.body;
       const user = await getUser(username);
       console.log(user);
-      if (!user) {
-        res.status(400).send("User not found");
+      if (!user || !(await comparePassword(password, user.password))) {
+        res.status(400).send("Unable to authenticate user");
         return;
       }
-      const passwordMatch = await comparePassword(password, user.password);
-      if (!passwordMatch) {
-        res.status(400).send("Password incorrect");
-        return;
-      }
-      const token = generateToken(username);
-      res.status(200).send(token);
+      const token = generateToken(user.username, user.role);
+      res.status(200).send({ token, role: user.role, username: user.username });
     } catch (error) {
       console.error(error);
       res.status(500).send("Internal Server Error");
     }
   });
 };
-
 module.exports = { setupExpress };

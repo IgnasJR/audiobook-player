@@ -1,12 +1,16 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
 import React from 'react';
-import { NavLink } from 'react-router-dom'
+import { NavLink, useNavigate } from 'react-router-dom'
 
 
-function Header({ setIsAuthenticated }) {
+function Header({ token, username, role, setToken, setUsername, setRole}) {
+  const navigate = useNavigate();
 
-  function logout() {
-    setIsAuthenticated(false);
+  function handleLoginButtonClick() {
+    setToken(null);
+    setUsername(null);
+    setRole(null);
+    navigate("/login");
   }
 
 return (
@@ -25,7 +29,7 @@ return (
         <a class="pl-6 inline-block text-m text-white hover:text-slate-400">Add Book</a>
       </NavLink>
     </div>
-    <a class="inline-block text-m text-white hover:text-slate-400 hover:cursor-pointer" onClick={logout}>Logout</a>
+    <a class="inline-block text-m text-white hover:text-slate-400 hover:cursor-pointer" onClick={handleLoginButtonClick}>{username == null ? "Login" : "Logout"}</a>
   </nav>
 </div>
 );

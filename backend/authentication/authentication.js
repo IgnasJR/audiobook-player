@@ -7,7 +7,6 @@ const hashPassword = async (password) => {
 };
 
 const comparePassword = async (password, hash) => {
-  console.log(password, hash);
   if (typeof hash !== "string" || hash.trim() === "") {
     throw new Error("Invalid hash");
   }

@@ -3,6 +3,7 @@ const jsonwebtoken = require("jsonwebtoken");
 const generateToken = (user) => {
   const secret = process.env.JWT_SECRET;
   const token = jsonwebtoken.sign(user, secret, { expiresIn: "1d" });
+  return token;
 };
 
 const verifyToken = (token) => {

@@ -81,7 +81,7 @@ const getUser = async (username) => {
           return;
         }
 
-        conn.query(selectQuery, [username], (error, results, fields) => {
+        conn.query(selectQuery, [username], (error, results) => {
           conn.release();
           if (error) {
             console.error(error);
@@ -89,12 +89,14 @@ const getUser = async (username) => {
             return;
           }
           if (results.length === 0) {
-            reject("User not found");
+            resolve(null);
             return;
           }
           resolve({
             username: results[0].user,
             password: results[0].pass,
+            role: results[0].role,
+            id: results[0].ID,
           });
         });
       });
