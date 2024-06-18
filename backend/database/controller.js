@@ -153,7 +153,7 @@ const getAlbums = async () => {
   return new Promise((resolve, reject) => {
     try {
       const selectQuery =
-        "SELECT albumName as Album, coverArtLink as Link, Artist FROM Albums";
+        "SELECT albumName as Album, coverArtLink as Link, Artist, id as Id FROM Albums";
       connection.getConnection((err, conn) => {
         if (err) {
           console.error(err);
@@ -185,7 +185,7 @@ const getAlbum = async (album) => {
       SELECT audiofiles.FileName, audiofiles.ID, audiofiles.Artist, albums.albumName
       FROM audiofiles 
       INNER JOIN albums ON albums.albumName = audiofiles.album
-      WHERE albums.albumName = ?
+      WHERE albums.id = ?
       ORDER BY 
         CASE 
           WHEN albums.album_type = 'Audiobook' THEN audiofiles.FileName 

@@ -29,6 +29,7 @@ function Main({ token, username, role, setToken, setUsername, setRole}) {
         setNotificationContent={setNotificationContent}
         setNotificationType={setNotificationType}
         setHeaderPresent={setHeaderPresent}
+        selectedAlbum={selectedAlbum}
       />
     </div>
   );
