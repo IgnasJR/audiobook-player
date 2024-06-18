@@ -1,10 +1,15 @@
 const jsonwebtoken = require("jsonwebtoken");
 
-const generateToken = (user) => {
+function generateToken(user) {
   const secret = process.env.JWT_SECRET;
-  const token = jsonwebtoken.sign(user, secret, { expiresIn: "1d" });
+  const userData = {
+    username: user.username,
+    role: user.role,
+    id: user.id,
+  };
+  const token = jsonwebtoken.sign({ userData }, secret, { expiresIn: "1d" });
   return token;
-};
+}
 
 const verifyToken = (token) => {
   const secret = process.env.JWT_SECRET;

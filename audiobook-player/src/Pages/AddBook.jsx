@@ -3,7 +3,7 @@ import Header from '../Components/Header';
 import Notification from '../Components/Notification';
 import Loading from '../Components/Loading';
 import { useState } from 'react';
-function AddBook({setIsAuthenticated}){
+function AddBook({token, username, role, setToken, setUsername, setRole}){
     const [error, setError] = useState(null); 
     const [notificationContent , setNotificationContent] = React.useState("");
     const [notificationType, setNotificationType] = React.useState("");
@@ -64,7 +64,7 @@ function AddBook({setIsAuthenticated}){
     return (
         <div className="bg-inherit pt-16">
             {isLoading ? <Loading/> : null}
-            <Header setIsAuthenticated={setIsAuthenticated} />
+            <Header token={token} setToken={setToken} username={username} setUsername={setUsername} role={role} setRole={setRole}  />
             {error ? <Notification headerPresent = {true} notificationContent={notificationContent} notificationType={notificationType}></Notification> : null }
             <div className='bg-inherit m-auto h-4/5 shadow-slate-500 border-2 border-slate-700 rounded-lg p-5 bg-slate-700 mt-[5%] sm:ml-32 sm:mr-32'>                    
                 <p className="text-4xl text-slate-300 pb-4">Add an audiobook</p>

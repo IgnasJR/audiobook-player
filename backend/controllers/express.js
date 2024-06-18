@@ -135,7 +135,7 @@ const setupExpress = (app) => {
         res.status(400).send("Unable to authenticate user");
         return;
       }
-      const token = generateToken(user.username, user.role);
+      const token = generateToken(user);
       res.status(200).send({ token, role: user.role, username: user.username });
     } catch (error) {
       console.error(error);
