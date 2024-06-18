@@ -2,13 +2,47 @@ import "../index.css";
 import ReactAudioPlayer from 'react-audio-player';
 import React, { useEffect, useRef, useState } from "react";
 
-function Player({selectedTrack, setNotificationContent, setNotificationType, setHeaderPresent }) {
+function Player({selectedTrack, setNotificationContent, setNotificationType, setHeaderPresent, token, currentBookId }) {
   const audioRef = useRef(null);
   const progressRef = useRef(null);
   const progressValueRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(audioRef.current?.isPlaying);
   const [queuePosition, setQueuePosition] = useState(0);
   const [volume, setVolume] = useState(1);
+
+  useEffect(() => {
+    const saveTrackProgress = () => {
+      if (isPlaying && token != null) {
+      fetch(`${window.location.protocol}//${window.location.hostname}:3001/api/saveTrackProgress`, {
+        method: 'POST',
+        headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `${token}`
+        },
+        body: JSON.stringify({
+        BookId: currentBookId,
+        Track: queuePosition,
+        Progress: audioRef.current.audioEl.current.currentTime
+        })
+      })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.error) {
+        setNotificationContent(data.error);
+        setNotificationType('warning');
+        setHeaderPresent(true);
+        }
+      });
+      }
+    };
+
+    const interval = setInterval(saveTrackProgress, 60000);
+    return () => {
+      clearInterval(interval);
+    };
+  }, [isPlaying, selectedTrack, queuePosition, setNotificationContent, setNotificationType, setHeaderPresent, currentBookId]);
+
+
 
 
   useEffect(() => {

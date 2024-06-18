@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Player from './Player';
 
-function Selector({ setSelectedTrack, setSelectedAlbum, selectedTrack, setNotificationContent, setNotificationType, setHeaderPresent, selectedAlbum}) {
+function Selector({ setSelectedTrack, setSelectedAlbum, selectedTrack, setNotificationContent, setNotificationType, setHeaderPresent, selectedAlbum, token}) {
     const [allAlbums, setAllAlbums] = useState([]);
 
     useEffect(() => {
@@ -39,7 +39,9 @@ function Selector({ setSelectedTrack, setSelectedAlbum, selectedTrack, setNotifi
                 selectedTrack={selectedTrack} 
                 setNotificationContent={setNotificationContent} 
                 setNotificationType={setNotificationType} 
-                setHeaderPresent={setHeaderPresent} 
+                setHeaderPresent={setHeaderPresent}
+                currentBookId={selectedAlbum}
+                token={token} 
             /> : null}
         </div>
     );
