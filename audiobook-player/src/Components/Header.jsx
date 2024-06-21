@@ -14,7 +14,7 @@ function Header({ token, username, role, setToken, setUsername, setRole}) {
   }
 
 return (
-<div className='fixed top-0 w-full h-16 max-h-16 bg-slate-700 z-10 drop-shadow-xl' >
+<div className='fixed top-0 w-full h-16 max-h-16 bg-slate-700 z-10 drop-shadow-xl border-b-2 border-black' >
   <nav class="flex items-center justify-between flex-wrap bg-slate-700 p-4">
     <div class="flex items-center flex-shrink-0 text-white mr-6">
       <NavLink to={'/'}>
