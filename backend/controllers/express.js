@@ -25,7 +25,13 @@ const setupExpress = (app) => {
       const id = req.query.id;
       const { fileName, fileData } = await getAudio(id);
 
-      res.setHeader("Content-Disposition", `inline; filename="${fileName}"`);
+      console.log(fileName, fileData.length);
+      const utf8FileName = encodeURIComponent(fileName);
+
+      res.setHeader(
+        "Content-Disposition",
+        `inline; filename*=UTF-8''${utf8FileName}`
+      );
       res.setHeader("Content-Type", "audio/mpeg");
       res.setHeader("Content-Length", fileData.length);
       res.setHeader("Accept-Ranges", "bytes");
