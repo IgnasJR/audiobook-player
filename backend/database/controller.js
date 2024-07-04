@@ -38,7 +38,7 @@ const addAudio = async (file, artist, album) => {
 const getAudio = async (id) => {
   return new Promise((resolve, reject) => {
     try {
-      const selectQuery = "SELECT * FROM AudioFiles WHERE id = ?";
+      const selectQuery = "SELECT * FROM Audiofiles WHERE id = ?";
       connection.getConnection((err, conn) => {
         if (err) {
           console.error(err);
@@ -182,16 +182,16 @@ const getAlbum = async (album) => {
   return new Promise((resolve, reject) => {
     try {
       const selectQuery = `
-      SELECT audiofiles.FileName, audiofiles.ID, audiofiles.Artist, albums.albumName
-      FROM audiofiles 
-      INNER JOIN albums ON albums.albumName = audiofiles.album
-      WHERE albums.id = ?
+      SELECT Audiofiles.FileName, Audiofiles.ID, Audiofiles.Artist, albums.albumName
+      FROM Audiofiles 
+      INNER JOIN Albums ON Albums.albumName = Audiofiles.album
+      WHERE Albums.id = ?
       ORDER BY 
         CASE 
-          WHEN albums.album_type = 'Audiobook' THEN audiofiles.FileName 
+          WHEN Albums.album_type = 'Audiobook' THEN Audiofiles.FileName 
           ELSE NULL 
         END,
-        audiofiles.FileName
+        Audiofiles.FileName
     `;
       connection.getConnection((err, conn) => {
         if (err) {
