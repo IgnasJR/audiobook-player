@@ -5,9 +5,18 @@ function Selector({ setSelectedTrack, setSelectedAlbum, selectedTrack, setNotifi
     const [allAlbums, setAllAlbums] = useState([]);
 
     useEffect(() => {
-        fetch(`${window.location.protocol}//${window.location.hostname}:3001/api/albums`)
-            .then((response) => response.json())
-            .then((data) => setAllAlbums(data));
+        const fetchData = () => {
+            return new Promise((resolve, reject) => {
+                fetch(`${window.location.protocol}//${window.location.hostname}:3001/api/albums`)
+                    .then((response) => response.json())
+                    .then((data) => resolve(data))
+                    .catch((error) => reject(error));
+            });
+        };
+
+        fetchData()
+            .then((data) => setAllAlbums(data))
+            .catch((error) => console.error(error));
     }, []);
 
     const handleAlbumClick = (album) => {

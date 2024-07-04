@@ -10,9 +10,10 @@ const setup = () => {
   app.use(cors());
   app.use(express.json());
   setupExpress(app);
+  const fs = require("fs");
 
-  const privateKey = fs.readFileSync("../ssl/key.pem", "utf8");
-  const certificate = fs.readFileSync("../ssl/cert.pem", "utf8");
+  const privateKey = fs.readFileSync(process.env.privateKeyDir, "utf8");
+  const certificate = fs.readFileSync(process.env.certificateDir, "utf8");
   const credentials = { key: privateKey, cert: certificate };
 
   Promise.all([privateKey, certificate])
