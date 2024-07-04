@@ -68,9 +68,16 @@ const setupExpress = (app) => {
     try {
       let uploadedFiles = [];
       for (let i = 0; i < req.files.length; i++) {
+        const file = req.files[i];
+        const mimeType = file.mimetype;
+        if (!mimeType.startsWith("audio/")) {
+          return res
+            .status(400)
+            .send("Invalid file type. Only audio files are allowed.");
+        }
         uploadedFiles.push({
-          originalname: req.files[i].originalname,
-          buffer: req.files[i].buffer,
+          originalname: file.originalname,
+          buffer: file.buffer,
         });
       }
 

@@ -1,23 +1,33 @@
+const fs = require("fs");
+const path = require("path");
 const { connection } = require("./mysql");
 const {
   hashPassword,
   comparePassword,
 } = require("../authentication/authentication");
+const audioDir =
+  process.env.AUDIO_STORAGE_DIR || path.join(__dirname, "audio_files");
+if (!fs.existsSync(audioDir)) {
+  fs.mkdirSync(audioDir, { recursive: true });
+}
 
 const addAudio = async (file, artist, album) => {
   console.log("adding", file.originalname, artist, album, "to database");
   try {
+    const filePath = path.join(audioDir, file.originalname);
+    fs.writeFileSync(filePath, file.buffer);
+
     const insertQuery =
-      "INSERT INTO AudioFiles (FileName, FileData, Timestamp, Artist, Album) VALUES (?, ?, ?, ?, ?)";
+      "INSERT INTO AudioFiles (FileName, FileDir, Timestamp, Artist, Album) VALUES (?, ?, ?, ?, ?)";
     connection.getConnection((err, conn) => {
       if (err) {
         console.error(err);
-        throw Error(error);
+        throw Error(err);
       }
 
       const values = [
         file.originalname,
-        file.buffer,
+        filePath,
         new Date(),
         artist !== undefined ? artist : "Unknown Artist",
         album !== undefined ? album : "Unknown Album",
@@ -32,7 +42,9 @@ const addAudio = async (file, artist, album) => {
         }
       });
     });
-  } catch (error) {}
+  } catch (error) {
+    console.error(error);
+  }
 };
 
 const getAudio = async (id) => {
@@ -57,9 +69,10 @@ const getAudio = async (id) => {
             reject("File not found");
             return;
           }
+          const fileData = fs.readFileSync(results[0].FileDir);
           resolve({
             fileName: results[0].FileName,
-            fileData: results[0].FileData,
+            fileData: fileData,
           });
         });
       });
@@ -182,7 +195,7 @@ const getAlbum = async (album) => {
   return new Promise((resolve, reject) => {
     try {
       const selectQuery = `
-      SELECT Audiofiles.FileName, Audiofiles.ID, Audiofiles.Artist, albums.albumName
+      SELECT Audiofiles.FileName, Audiofiles.ID, Audiofiles.Artist, Albums.albumName
       FROM Audiofiles 
       INNER JOIN Albums ON Albums.albumName = Audiofiles.album
       WHERE Albums.id = ?
