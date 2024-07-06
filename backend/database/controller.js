@@ -11,14 +11,13 @@ if (!fs.existsSync(audioDir)) {
   fs.mkdirSync(audioDir, { recursive: true });
 }
 
-const addAudio = async (file, artist, album) => {
-  console.log("adding", file.originalname, artist, album, "to database");
+const addAudio = async (file, album) => {
   try {
     const filePath = path.join(audioDir, file.originalname);
     fs.writeFileSync(filePath, file.buffer);
 
     const insertQuery =
-      "INSERT INTO AudioFiles (FileName, FileDir, Timestamp, Artist, Album) VALUES (?, ?, ?, ?, ?)";
+      "INSERT INTO AudioFiles (FileName, FileDir, Timestamp, album_id) VALUES (?, ?, ?, ?)";
     connection.getConnection((err, conn) => {
       if (err) {
         console.error(err);
@@ -29,8 +28,7 @@ const addAudio = async (file, artist, album) => {
         file.originalname,
         filePath,
         new Date(),
-        artist !== undefined ? artist : "Unknown Artist",
-        album !== undefined ? album : "Unknown Album",
+        album !== undefined ? album : -1,
       ];
 
       conn.query(insertQuery, values, (error, results, fields) => {
@@ -195,17 +193,16 @@ const getAlbum = async (album) => {
   return new Promise((resolve, reject) => {
     try {
       const selectQuery = `
-      SELECT Audiofiles.FileName, Audiofiles.ID, Audiofiles.Artist, Albums.albumName
+      SELECT Audiofiles.FileName, Audiofiles.ID, Albums.Artist, Albums.albumName
       FROM Audiofiles 
-      INNER JOIN Albums ON Albums.albumName = Audiofiles.album
+      INNER JOIN Albums ON Albums.id = Audiofiles.album_id
       WHERE Albums.id = ?
       ORDER BY 
         CASE 
-          WHEN Albums.album_type = 'Audiobook' THEN Audiofiles.FileName 
+          WHEN Albums.album_type = "Audiobook" THEN Audiofiles.FileName 
           ELSE NULL 
         END,
-        Audiofiles.FileName
-    `;
+        Audiofiles.FileName`;
       connection.getConnection((err, conn) => {
         if (err) {
           console.error(err);
@@ -237,27 +234,6 @@ const getAlbum = async (album) => {
 const addAlbum = (albumName, coverArtLink, artist) => {
   return new Promise((resolve, reject) => {
     const selectQuery = "SELECT * FROM Albums WHERE albumName = ?";
-    connection.getConnection((err, conn) => {
-      if (err) {
-        console.error(err);
-        reject(new Error(err));
-        return;
-      }
-      conn.query(selectQuery, [albumName], (error, results, fields) => {
-        conn.release();
-        if (error) {
-          console.error(error);
-          reject(new Error("Internal Server Error"));
-          return;
-        }
-        if (results.length > 0) {
-          reject(new Error("Album already exists"));
-          return;
-        }
-        resolve();
-      });
-    });
-
     const insertQuery =
       "INSERT INTO Albums (albumName, coverArtLink, Artist) VALUES (?, ?, ?)";
     connection.getConnection((err, conn) => {
@@ -266,17 +242,30 @@ const addAlbum = (albumName, coverArtLink, artist) => {
         reject(new Error(err));
         return;
       }
-
-      const values = [albumName, coverArtLink, artist];
-
-      conn.query(insertQuery, values, (error, results, fields) => {
-        conn.release();
+      conn.query(selectQuery, [albumName], (error, results, fields) => {
         if (error) {
+          conn.release();
           console.error(error);
-          reject(new Error(error));
+          reject(new Error("Internal Server Error"));
           return;
         }
-        resolve();
+        if (results.length > 0) {
+          conn.release();
+          reject(new Error("Album already exists"));
+          return;
+        }
+
+        const values = [albumName, coverArtLink, artist];
+
+        conn.query(insertQuery, values, (error, results, fields) => {
+          conn.release();
+          if (error) {
+            console.error(error);
+            reject(new Error(error));
+            return;
+          }
+          resolve(results.insertId);
+        });
       });
     });
   });

@@ -85,10 +85,14 @@ const setupExpress = (app) => {
         throw new Error("Files not uploaded");
       }
 
-      await addAlbum(req.body.album, req.body.coverArtLink, req.body.artist);
+      let album_id = await addAlbum(
+        req.body.album,
+        req.body.coverArtLink,
+        req.body.artist
+      );
 
       for (let i = 0; i < uploadedFiles.length; i++) {
-        await addAudio(uploadedFiles[i], req.body.artist, req.body.album);
+        await addAudio(uploadedFiles[i], album_id);
       }
     } catch (error) {
       console.error(error);
