@@ -2,37 +2,73 @@ import "../index.css";
 import ReactAudioPlayer from 'react-audio-player';
 import React, { useEffect, useRef, useState } from "react";
 
-function Player({selectedTrack, setNotificationContent, setNotificationType, setHeaderPresent, token, currentBookId }) {
+function Player({ selectedTrack, setNotificationContent, setNotificationType, setHeaderPresent, token, currentBookId }) {
   const audioRef = useRef(null);
   const progressRef = useRef(null);
   const progressValueRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(audioRef.current?.isPlaying);
   const [queuePosition, setQueuePosition] = useState(0);
   const [volume, setVolume] = useState(1);
+  const [audioSrc, setAudioSrc] = useState(null);
+
+  useEffect(() => {
+    const fetchAudio = async () => {
+      if (selectedTrack && selectedTrack[queuePosition]) {
+        const trackID = selectedTrack[queuePosition].ID;
+        const url = `${window.location.protocol}//${window.location.hostname}:3001/api/retrieve?id=${trackID}`;
+        try {
+          const response = await fetch(url, {
+            headers: {
+              'Authorization': `${token}`
+            }
+          });
+          if (response.ok) {
+            const blob = await response.blob();
+            const objectURL = URL.createObjectURL(blob);
+            setAudioSrc(objectURL);
+          } else {
+            console.error('Failed to fetch audio:', response.statusText);
+          }
+        } catch (error) {
+          console.error('Error fetching audio:', error);
+        }
+      } else {
+        setAudioSrc(null);
+      }
+    };
+
+    fetchAudio();
+
+    return () => {
+      if (audioSrc) {
+        URL.revokeObjectURL(audioSrc);
+      }
+    };
+  }, [selectedTrack, queuePosition, token]);
 
   useEffect(() => {
     const saveTrackProgress = () => {
       if (isPlaying && token != null) {
-      fetch(`${window.location.protocol}//${window.location.hostname}:3001/api/saveTrackProgress`, {
-        method: 'POST',
-        headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `${token}`
-        },
-        body: JSON.stringify({
-        BookId: currentBookId,
-        Track: queuePosition,
-        Progress: audioRef.current.audioEl.current.currentTime
+        fetch(`${window.location.protocol}//${window.location.hostname}:3001/api/saveTrackProgress`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `${token}`
+          },
+          body: JSON.stringify({
+            BookId: currentBookId,
+            Track: queuePosition,
+            Progress: audioRef.current.audioEl.current.currentTime
+          })
         })
-      })
-      .then((response) => response.json())
-      .then((data) => {
-        if (data.error) {
-        setNotificationContent(data.error);
-        setNotificationType('warning');
-        setHeaderPresent(true);
-        }
-      });
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.error) {
+            setNotificationContent(data.error);
+            setNotificationType('warning');
+            setHeaderPresent(true);
+          }
+        });
       }
     };
 
@@ -42,25 +78,21 @@ function Player({selectedTrack, setNotificationContent, setNotificationType, set
     };
   }, [isPlaying, selectedTrack, queuePosition, setNotificationContent, setNotificationType, setHeaderPresent, currentBookId]);
 
-
-
-
   useEffect(() => {
     const audioElement = audioRef.current.audioEl.current;
     audioElement.volume = volume;
-      const handleTimeUpdate = () => {
-        const audioElement = audioRef.current.audioEl.current;
-        const duration = audioElement.duration;
-    
+    const handleTimeUpdate = () => {
+      const duration = audioElement.duration;
       if (!isNaN(duration) && isFinite(duration)) {
         const progress = (audioElement.currentTime / duration) * 100;
         progressValueRef.current.style.width = `${progress}%`;
+      } else {
+        progressValueRef.current.style.width = `0% !important`;
       }
-      else progressValueRef.current.style.width = `0% !important`;
     };
     const handlePlay = () => { setIsPlaying(true); };
     const handlePause = () => { setIsPlaying(false); };
-    
+
     audioElement.addEventListener("timeupdate", handleTimeUpdate);
     audioElement.addEventListener("play", handlePlay);
     audioElement.addEventListener("pause", handlePause);
@@ -152,10 +184,10 @@ function Player({selectedTrack, setNotificationContent, setNotificationType, set
   return (
     <div className='fixed bottom-0 w-full h-[4.5rem] bg-slate-700 z-10'>
       <ReactAudioPlayer
-        src={selectedTrack ? `${window.location.protocol}//${window.location.hostname}:3001/api/retrieve?id=${selectedTrack[queuePosition].ID}` : null}
+        src={audioSrc}
         autoPlay
         type="audio/mpeg"
-        onEnded={handleNextInQueue} 
+        onEnded={handleNextInQueue}
         ref={audioRef}
       />
       <div className='controls pt-2'>

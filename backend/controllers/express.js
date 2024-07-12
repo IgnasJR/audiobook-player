@@ -8,17 +8,23 @@ const {
   addUser,
   getUser,
 } = require("../database/controller");
-const {
-  comparePassword,
-  hashPassword,
-} = require("../authentication/authentication");
-const { generateToken } = require("../authentication/jwt");
+const { comparePassword } = require("../authentication/authentication");
+const { generateToken, verifyToken } = require("../authentication/jwt");
 
 const setupExpress = (app) => {
   app.get("/api/retrieve", async (req, res) => {
     try {
       if (!req.query.id) {
         res.status(400).send("No id provided");
+        return;
+      }
+      if (!req.headers.authorization) {
+        res.status(401).send("Unauthorized");
+        return;
+      }
+      let user = verifyToken(req.headers.authorization);
+      if (!user) {
+        res.status(401).send("Unauthorized");
         return;
       }
 
@@ -65,6 +71,20 @@ const setupExpress = (app) => {
       return res.status(400).send("No file uploaded.");
     }
 
+    if (!req.body.album || !req.body.artist) {
+      return res.status(400).send("Album and Artist are required fields.");
+    }
+
+    if (!req.headers.authorization) {
+      res.status(401).send("Unauthorized");
+      return;
+    }
+    let user = verifyToken(req.headers.authorization);
+    if (!user || user.userData.role !== "admin") {
+      res.status(401).send("Unauthorized. Admin access required.");
+      return;
+    }
+
     try {
       let uploadedFiles = [];
       for (let i = 0; i < req.files.length; i++) {
@@ -103,6 +123,15 @@ const setupExpress = (app) => {
 
   app.get("/api/albums", async (req, res) => {
     try {
+      if (!req.headers.authorization) {
+        res.status(401).send("Unauthorized");
+        return;
+      }
+      if (!verifyToken(req.headers.authorization)) {
+        res.status(401).send("Unauthorized");
+        return;
+      }
+
       const albums = await getAlbums();
       res.status(200).send(albums);
     } catch (error) {
@@ -113,9 +142,16 @@ const setupExpress = (app) => {
 
   app.get("/api/album", async (req, res) => {
     try {
-      console.log(req.query.album);
       if (!req.query.album) {
         res.status(400).send("No album provided");
+        return;
+      }
+      if (!req.headers.authorization) {
+        res.status(401).send("Unauthorized");
+        return;
+      }
+      if (!verifyToken(req.headers.authorization)) {
+        res.status(401).send("Unauthorized");
         return;
       }
       const album = req.query.album;

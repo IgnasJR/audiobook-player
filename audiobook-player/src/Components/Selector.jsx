@@ -7,7 +7,11 @@ function Selector({ setSelectedTrack, setSelectedAlbum, selectedTrack, setNotifi
     useEffect(() => {
         const fetchData = () => {
             return new Promise((resolve, reject) => {
-                fetch(`${window.location.protocol}//${window.location.hostname}:3001/api/albums`)
+                fetch(`${window.location.protocol}//${window.location.hostname}:3001/api/albums`, {
+                    headers: {
+                        Authorization: `${token}`
+                    }
+                })
                     .then((response) => response.json())
                     .then((data) => resolve(data))
                     .catch((error) => reject(error));
@@ -25,7 +29,11 @@ function Selector({ setSelectedTrack, setSelectedAlbum, selectedTrack, setNotifi
         }
         setSelectedTrack(null);
         setSelectedAlbum(album.Id);
-        fetch(`${window.location.protocol}//${window.location.hostname}:3001/api/album?album=${album.Id}`)
+        fetch(`${window.location.protocol}//${window.location.hostname}:3001/api/album?album=${album.Id}`, {
+            headers: {
+            Authorization: `${token}`
+            }
+        })
             .then((response) => response.json())
             .then((data) => setSelectedTrack(data));
     }

@@ -41,6 +41,9 @@ function AddBook({token, username, role, setToken, setUsername, setRole}){
         try {
             const response = await fetch(`${window.location.protocol}//${window.location.hostname}:3001/api/upload`, {
                 method: 'POST',
+                headers: {
+                    'Authorization': `${token}`
+                },
                 body: formData
             });
     
