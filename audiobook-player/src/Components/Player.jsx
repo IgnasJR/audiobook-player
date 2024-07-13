@@ -2,7 +2,7 @@ import "../index.css";
 import ReactAudioPlayer from 'react-audio-player';
 import React, { useEffect, useRef, useState } from "react";
 
-function Player({ selectedTrack, setNotificationContent, setNotificationType, setHeaderPresent, token, currentBookId }) {
+function Player({ selectedTrack, setNotificationContent, setNotificationType, setHeaderPresent, token, currentBookId}) {
   const audioRef = useRef(null);
   const progressRef = useRef(null);
   const progressValueRef = useRef(null);

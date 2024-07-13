@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import Notification from '../Components/Notification';
 import { useNavigate } from 'react-router-dom';
 
-function Login({setUsername, setToken, setRole}) {
+function Login({setUsername, setToken, setRole, setCookie}) {
     const navigate = useNavigate();
     const [error, setError] = useState(null); 
     const [isLogin, setIsLogin] = useState(true);
@@ -20,7 +20,7 @@ function Login({setUsername, setToken, setRole}) {
     };
 
     const handleForgotPasswordClick = () => {
-        alert("too bad lol");
+        alert("Not yet implemented");
     
     };
 
@@ -57,6 +57,7 @@ function Login({setUsername, setToken, setRole}) {
             setRole(role);
             setUsername(username);
             setToken(token);
+            setCookie(token, role, username);
             navigate("/");
         }).catch(error => {
             console.error("Error:", error);

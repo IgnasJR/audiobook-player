@@ -3,13 +3,14 @@ import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom'
 
 
-function Header({ token, username, role, setToken, setUsername, setRole}) {
+function Header({ token, username, role, setToken, setUsername, setRole, removeCookie }) {
   const navigate = useNavigate();
 
   function handleLoginButtonClick() {
     setToken(null);
     setUsername(null);
     setRole(null);
+    removeCookie();
     navigate("/login");
   }
 

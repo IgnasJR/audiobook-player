@@ -4,7 +4,7 @@ import Header from "../Components/Header";
 import Selector from "../Components/Selector";
 import Notification from "../Components/Notification";
 
-function Main({ token, username, role, setToken, setUsername, setRole}) {
+function Main({ token, username, role, setToken, setUsername, setRole, removeCookie}) {
   const [selectedTrack, setSelectedTrack] = useState(null);
   const [selectedAlbum, setSelectedAlbum] = useState(null);
   const [notificationContent, setNotificationContent] = useState("");
@@ -21,7 +21,7 @@ function Main({ token, username, role, setToken, setUsername, setRole}) {
           headerPresent={headerPresent}
         />
       ) : null}
-      <Header token={token} setToken={setToken} username={username} setUsername={setUsername} role={role} setRole={setRole}  />
+      <Header token={token} setToken={setToken} username={username} setUsername={setUsername} role={role} setRole={setRole} removeCookie={removeCookie}  />
       <Selector
         setSelectedAlbum={setSelectedAlbum}
         setSelectedTrack={setSelectedTrack}
