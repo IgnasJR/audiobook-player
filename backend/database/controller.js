@@ -17,7 +17,7 @@ const addAudio = async (file, album) => {
     fs.writeFileSync(filePath, file.buffer);
 
     const insertQuery =
-      "INSERT INTO AudioFiles (FileName, FileDir, Timestamp, album_id) VALUES (?, ?, ?, ?)";
+      "INSERT INTO audiofiles (FileName, FileDir, Timestamp, album_id) VALUES (?, ?, ?, ?)";
     connection.getConnection((err, conn) => {
       if (err) {
         console.error(err);
@@ -48,7 +48,7 @@ const addAudio = async (file, album) => {
 const getAudio = async (id) => {
   return new Promise((resolve, reject) => {
     try {
-      const selectQuery = "SELECT * FROM Audiofiles WHERE id = ?";
+      const selectQuery = "SELECT * FROM audiofiles WHERE id = ?";
       connection.getConnection((err, conn) => {
         if (err) {
           console.error(err);
@@ -84,7 +84,7 @@ const getAudio = async (id) => {
 const getUser = async (username) => {
   return new Promise((resolve, reject) => {
     try {
-      const selectQuery = "SELECT * FROM Users WHERE user = ?";
+      const selectQuery = "SELECT * FROM users WHERE user = ?";
       connection.getConnection((err, conn) => {
         if (err) {
           console.error(err);
@@ -119,8 +119,8 @@ const getUser = async (username) => {
 };
 
 const addUser = async (username, password) => {
-  const selectQuery = "SELECT * FROM Users WHERE user = ?";
-  const insertQuery = "INSERT INTO Users (user, pass) VALUES (?, ?)";
+  const selectQuery = "SELECT * FROM users WHERE user = ?";
+  const insertQuery = "INSERT INTO users (user, pass) VALUES (?, ?)";
   return new Promise((resolve, reject) => {
     if (process.env.Registration_Disabled === "true") {
       reject(new Error("Registration Disabled"));
@@ -164,7 +164,7 @@ const getAlbums = async () => {
   return new Promise((resolve, reject) => {
     try {
       const selectQuery =
-        "SELECT albumName as Album, coverArtLink as Link, Artist, id as Id FROM Albums";
+        "SELECT albumName as Album, coverArtLink as Link, Artist, id as Id FROM albums";
       connection.getConnection((err, conn) => {
         if (err) {
           console.error(err);
@@ -193,16 +193,16 @@ const getAlbum = async (album) => {
   return new Promise((resolve, reject) => {
     try {
       const selectQuery = `
-      SELECT Audiofiles.FileName, Audiofiles.ID, Albums.Artist, Albums.albumName
-      FROM Audiofiles 
-      INNER JOIN Albums ON Albums.id = Audiofiles.album_id
-      WHERE Albums.id = ?
+      SELECT audiofiles.FileName, audiofiles.ID, albums.Artist, albums.albumName
+      FROM audiofiles 
+      INNER JOIN albums ON albums.id = audiofiles.album_id
+      WHERE albums.id = ?
       ORDER BY 
         CASE 
-          WHEN Albums.album_type = "Audiobook" THEN Audiofiles.FileName 
+          WHEN albums.album_type = "Audiobook" THEN audiofiles.FileName 
           ELSE NULL 
         END,
-        Audiofiles.FileName`;
+        audiofiles.FileName`;
       connection.getConnection((err, conn) => {
         if (err) {
           console.error(err);
@@ -233,9 +233,9 @@ const getAlbum = async (album) => {
 
 const addAlbum = (albumName, coverArtLink, artist) => {
   return new Promise((resolve, reject) => {
-    const selectQuery = "SELECT * FROM Albums WHERE albumName = ?";
+    const selectQuery = "SELECT * FROM albums WHERE albumName = ?";
     const insertQuery =
-      "INSERT INTO Albums (albumName, coverArtLink, Artist) VALUES (?, ?, ?)";
+      "INSERT INTO albums (albumName, coverArtLink, Artist) VALUES (?, ?, ?)";
     connection.getConnection((err, conn) => {
       if (err) {
         console.error(err);
