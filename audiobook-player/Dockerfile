@@ -1,9 +1,12 @@
-FROM node:20-alpine
+FROM node:20-alpine AS build
 WORKDIR /app
 COPY package.json package-lock.json ./
-RUN npm install
+RUN npm ci
 COPY . .
 RUN npm run build
-RUN npm install -g serve
-EXPOSE 3000
-CMD ["serve", "--ssl-cert", "/usr/src/ssl/cert.pem", "--ssl-key", "/usr/src/ssl/key.pem", "-s", "build", "-l", "3000"]
+FROM nginx:stable-alpine
+COPY --from=build /app/build /usr/share/nginx/html
+COPY nginx.conf /etc/nginx/nginx.conf
+
+EXPOSE 443
+CMD ["nginx", "-g", "daemon off;"]
