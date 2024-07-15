@@ -105,9 +105,9 @@ function Login({setUsername, setToken, setRole, setCookie}) {
 
 
     return (
-        <div>
+        <div className='flex h-screen'>
             {error ? <Notification notificationContent={notificationContent} notificationType={notificationType}></Notification> : null }
-            <div className={`bg-inherit m-auto h-4/5 shadow-slate-500 border-2 border-slate-700 rounded-lg p-5 bg-slate-700 mt-[5%] sm:ml-32 sm:mr-32`}>
+            <div className={`bg-inherit m-auto sm:w-1/2 w-full shadow-slate-500 border-2 border-slate-700 rounded-lg p-5 bg-slate-700`}>
                 <h1 className="text-4xl text-slate-100 pt-5">PlayerJR</h1>
                 <div className="flex justify-center items-stretch relative flex-row">
                     <div className={`w-72 max-w-[45%] h-14 rounded-l-3xl rounded-r-3xl bg-yellow-500 absolute border-solid z-0 transition-transform ${isLogin ? `translate-x-[-50%]` : `translate-x-[50%]`}`}></div>
