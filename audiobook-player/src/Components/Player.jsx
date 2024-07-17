@@ -15,7 +15,7 @@ function Player({ selectedTrack, setNotificationContent, setNotificationType, se
     const fetchAudio = async () => {
       if (selectedTrack && selectedTrack[queuePosition]) {
         const trackID = selectedTrack[queuePosition].ID;
-        const url = `${window.location.protocol}//${window.location.hostname}:3001/api/retrieve?id=${trackID}`;
+        const url = `${window.location.protocol}//${window.location.hostname}:${process.env.REACT_APP_FRONT_END_PORT}/api/retrieve?id=${trackID}`;
         try {
           const response = await fetch(url, {
             headers: {
@@ -49,7 +49,7 @@ function Player({ selectedTrack, setNotificationContent, setNotificationType, se
   useEffect(() => {
     const saveTrackProgress = () => {
       if (isPlaying && token != null) {
-        fetch(`${window.location.protocol}//${window.location.hostname}:3001/api/saveTrackProgress`, {
+        fetch(`${window.location.protocol}//${window.location.hostname}:${process.env.REACT_APP_FRONT_END_PORT}/api/saveTrackProgress`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

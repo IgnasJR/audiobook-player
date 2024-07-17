@@ -1,5 +1,5 @@
 cd audiobook-player
-docker build -t ignasjr/player-frontend .
+docker image build -t ignasjr/player-frontend .
 docker push ignasjr/player-frontend
 cd ..
 cd backend

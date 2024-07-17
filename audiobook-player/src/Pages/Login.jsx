@@ -31,7 +31,7 @@ function Login({setUsername, setToken, setRole, setCookie}) {
             setError(true);
             return;
         }
-        fetch(`${window.location.protocol}//${window.location.hostname}:3001/api/login`, {
+        fetch(`${window.location.protocol}//${window.location.hostname}:${process.env.REACT_APP_FRONT_END_PORT}/api/login`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -77,7 +77,7 @@ function Login({setUsername, setToken, setRole, setCookie}) {
             setError(true);
             return;
         }
-        fetch(`${window.location.protocol}//${window.location.hostname}:3001/api/register`, {
+        fetch(`${window.location.protocol}//${window.location.hostname}:${process.env.REACT_APP_FRONT_END_PORT}/api/register`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

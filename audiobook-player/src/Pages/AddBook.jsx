@@ -39,7 +39,7 @@ function AddBook({token, username, role, setToken, setUsername, setRole, removeC
         }
     
         try {
-            const response = await fetch(`${window.location.protocol}//${window.location.hostname}:3001/api/upload`, {
+            const response = await fetch(`${window.location.protocol}//${window.location.hostname}:${process.env.REACT_APP_FRONT_END_PORT}/api/upload`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `${token}`
@@ -67,7 +67,7 @@ function AddBook({token, username, role, setToken, setUsername, setRole, removeC
     return (
         <div className="bg-inherit pt-16">
             {isLoading ? <Loading/> : null}
-            <Header token={token} setToken={setToken} username={username} setUsername={setUsername} role={role} setRole={setRole} removeCookie={removeCookie} />
+            <Header token={token} setToken={setToken} username={username} setUsername={setUsername} role={role} setRole={setRole} removeCookie={removeCookie}  />
             {error ? <Notification headerPresent = {true} notificationContent={notificationContent} notificationType={notificationType}></Notification> : null }
             <div className='bg-inherit m-auto h-4/5 shadow-slate-500 border-2 border-slate-700 rounded-lg p-5 bg-slate-700 mt-[5%] sm:ml-32 sm:mr-32'>                    
                 <p className="text-4xl text-slate-300 pb-4">Add an audiobook</p>
