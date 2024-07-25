@@ -46,39 +46,42 @@ const addAudio = async (file, album) => {
 };
 
 const getAudio = async (id) => {
-  return new Promise((resolve, reject) => {
-    try {
-      const selectQuery = "SELECT * FROM audiofiles WHERE id = ?";
+  try {
+    const selectQuery = "SELECT * FROM audiofiles WHERE id = ?";
+    return new Promise((resolve, reject) => {
       connection.getConnection((err, conn) => {
         if (err) {
-          console.error(err);
-          reject(err);
-          return;
+          console.error('Database connection error:', err);
+          return reject(new Error('Database connection error'));
         }
 
-        conn.query(selectQuery, [id], (error, results, fields) => {
+        conn.query(selectQuery, [id], async (error, results) => {
           conn.release();
           if (error) {
-            console.error(error);
-            reject(error);
-            return;
+            console.error('Query error:', error);
+            return reject(new Error('Query error'));
           }
           if (results.length === 0) {
-            reject("File not found");
-            return;
+            return reject(new Error('File not found'));
           }
-          const fileData = fs.readFileSync(results[0].FileDir);
-          resolve({
-            fileName: results[0].FileName,
-            fileData: fileData,
-          });
+
+          try {
+            const fileData = await fs.readFile(results[0].FileDir);
+            resolve({
+              fileName: results[0].FileName,
+              fileData: fileData,
+            });
+          } catch (fileError) {
+            console.error('File read error:', fileError);
+            reject(new Error('File read error'));
+          }
         });
       });
-    } catch (error) {
-      console.error(error);
-      reject(error);
-    }
-  });
+    });
+  } catch (error) {
+    console.error('Unexpected error:', error);
+    throw new Error('Unexpected error');
+  }
 };
 
 const getUser = async (username) => {

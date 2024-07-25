@@ -74,6 +74,7 @@ function App() {
                 setUsername={setUsername}
                 setToken={setToken}
                 setRole={setRole}
+                removeCookie={removeCookie}
               />
             )
           }

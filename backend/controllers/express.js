@@ -15,77 +15,90 @@ const setupExpress = (app) => {
   app.get("/api/retrieve", async (req, res) => {
     try {
       if (!req.query.id) {
-        res.status(400).send("No id provided");
-        return;
+        return res.status(400).send("No id provided");
       }
+  
       if (!req.headers.authorization) {
-        res.status(401).send("Unauthorized");
-        return;
+        return res.status(401).send("Unauthorized");
       }
+  
       let user = verifyToken(req.headers.authorization);
       if (!user) {
-        res.status(401).send("Unauthorized");
-        return;
+        return res.status(401).send("Unauthorized");
       }
-
+  
       const id = req.query.id;
-      const { fileName, fileData } = await getAudio(id);
-
+      let fileName, fileData;
+  
+      try {
+        ({ fileName, fileData } = await getAudio(id));
+      } catch (err) {
+        console.error(err);
+        return res.status(500).send("Error retrieving the file");
+      }
+  
       console.log(fileName, fileData.length);
       const utf8FileName = encodeURIComponent(fileName);
-
+  
       res.setHeader(
         "Content-Disposition",
         `inline; filename*=UTF-8''${utf8FileName}`
       );
       res.setHeader("Content-Type", "audio/mpeg");
-      res.setHeader("Content-Length", fileData.length);
       res.setHeader("Accept-Ranges", "bytes");
-
+  
       const range = req.headers.range;
       if (range) {
         const parts = range.replace(/bytes=/, "").split("-");
         const start = parseInt(parts[0], 10);
         const end = parts[1] ? parseInt(parts[1], 10) : fileData.length - 1;
+  
+        if (isNaN(start) || isNaN(end) || start >= fileData.length || end >= fileData.length || start > end) {
+          return res.status(416).send("Requested range not satisfiable");
+        }
+  
         const chunkSize = end - start + 1;
-
+  
         res.status(206);
         res.setHeader(
           "Content-Range",
           `bytes ${start}-${end}/${fileData.length}`
         );
         res.setHeader("Content-Length", chunkSize);
-
-        res.end(fileData.slice(start, end + 1));
+  
+        return res.end(fileData.slice(start, end + 1));
       } else {
-        res.send(fileData);
+        res.setHeader("Content-Length", fileData.length);
+        return res.status(200).send(fileData);
       }
     } catch (error) {
       console.error(error);
-      res.status(500).send("Internal Server Error");
+      if (!res.headersSent) {
+        res.status(500).send("Internal Server Error");
+      }
     }
   });
+  
 
   app.post("/api/upload", upload.array("files"), async (req, res) => {
-    if (!req.files || req.files.length === 0) {
-      return res.status(400).send("No file uploaded.");
-    }
-
-    if (!req.body.album || !req.body.artist) {
-      return res.status(400).send("Album and Artist are required fields.");
-    }
-
-    if (!req.headers.authorization) {
-      res.status(401).send("Unauthorized");
-      return;
-    }
-    let user = verifyToken(req.headers.authorization);
-    if (!user || user.userData.role !== "admin") {
-      res.status(401).send("Unauthorized. Admin access required.");
-      return;
-    }
-
     try {
+      if (!req.files || req.files.length === 0) {
+        return res.status(400).send("No file uploaded.");
+      }
+  
+      if (!req.body.album || !req.body.artist) {
+        return res.status(400).send("Album and Artist are required fields.");
+      }
+  
+      if (!req.headers.authorization) {
+        return res.status(401).send("Unauthorized");
+      }
+  
+      let user = verifyToken(req.headers.authorization);
+      if (!user || user.userData.role !== "admin") {
+        return res.status(401).send("Unauthorized. Admin access required.");
+      }
+  
       let uploadedFiles = [];
       for (let i = 0; i < req.files.length; i++) {
         const file = req.files[i];
@@ -100,26 +113,29 @@ const setupExpress = (app) => {
           buffer: file.buffer,
         });
       }
-
+  
       if (req.files.length !== uploadedFiles.length) {
         throw new Error("Files not uploaded");
       }
-
+  
       let album_id = await addAlbum(
         req.body.album,
         req.body.coverArtLink,
         req.body.artist
       );
-
+  
       for (let i = 0; i < uploadedFiles.length; i++) {
         await addAudio(uploadedFiles[i], album_id);
       }
+  
+      res.status(200).send("Success");
     } catch (error) {
       console.error(error);
-      res.status(400).send("Server unable to process files. Please try again.");
+      if (!res.headersSent) {
+        res.status(500).send("Server unable to process files. Please try again.");
+      }
     }
-    res.status(200).send("Success");
-  });
+  });  
 
   app.get("/api/albums", async (req, res) => {
     try {
