@@ -11,6 +11,105 @@ if (!fs.existsSync(audioDir)) {
   fs.mkdirSync(audioDir, { recursive: true });
 }
 
+const getTrackProgress = (bookId, userId) => {
+  return new Promise((resolve, reject) => {
+    connection.getConnection((err, conn) => {
+      if (err) {
+        console.error('Error getting connection:', err);
+        return reject(err);
+      }
+
+      conn.query(
+        'SELECT * FROM progress WHERE user_id = ? AND book_id = ?',
+        [userId, bookId],
+        (err, rows) => {
+          conn.release();
+          if (err) {
+            console.error('Error selecting progress:', err);
+            return reject(err);
+          }
+
+          if (rows.length === 0) {
+            console.log('Track progress not found');
+            return resolve({
+              track: 0,
+              progress: 0,
+            });
+          } else {
+            console.log('Track progress retrieved successfully');
+            console.log(rows[0].track, rows[0].track_progress);
+            return resolve({
+              track: rows[0].track,
+              progress: rows[0].track_progress,
+            });
+          }
+        }
+      );
+    });
+  });
+};
+
+
+
+
+const saveTrackProgress = (bookId, userId, track, progress,) => {
+  connection.getConnection((err, conn) => {
+    if (err) {
+      console.error('Error getting connection:', err);
+    }
+
+    conn.beginTransaction((err) => {
+      if (err) {
+        console.error('Error beginning transaction:', err);
+        conn.release();
+        return callback(err);
+      }
+
+      conn.query(
+        'SELECT * FROM progress WHERE user_id = ? AND book_id = ?', [userId, bookId], (err, rows) => {
+          if (err) {
+            console.error('Error selecting progress:', err);
+            conn.rollback(() => {
+              conn.release();
+            });
+            return;
+          }
+          let query;
+          if (rows.length > 0) {
+            query = 'UPDATE progress SET track = ?, track_progress = ? WHERE user_id = ? AND book_id = ?';
+          } else {
+            query = 'INSERT INTO progress (track, track_progress, user_id, book_id) VALUES (?, ?, ?, ?)';
+          }
+
+          conn.query(query, [track, progress, userId, bookId], (err) => {
+            if (err) {
+              console.error('Error updating or inserting progress:', err);
+              conn.rollback(() => {
+                conn.release();
+              });
+              return;
+            }
+
+            conn.commit((err) => {
+              if (err) {
+                console.error('Error committing transaction:', err);
+                conn.rollback(() => {
+                  conn.release();
+                });
+                return;
+              }
+
+              console.log('Track progress saved successfully');
+              conn.release();
+            });
+          });
+        }
+      );
+    });
+  });
+};
+
+
 const addAudio = async (file, album) => {
   try {
     const filePath = path.join(audioDir, file.originalname);
@@ -46,42 +145,36 @@ const addAudio = async (file, album) => {
 };
 
 const getAudio = async (id) => {
-  try {
-    const selectQuery = "SELECT * FROM audiofiles WHERE id = ?";
-    return new Promise((resolve, reject) => {
+  return new Promise((resolve, reject) => {
+    try {
+      const selectQuery = "SELECT * FROM audiofiles WHERE id = ?";
       connection.getConnection((err, conn) => {
         if (err) {
-          console.error('Database connection error:', err);
-          return reject(new Error('Database connection error'));
+          console.error(err);
+          return reject(err);
         }
 
-        conn.query(selectQuery, [id], async (error, results) => {
+        conn.query(selectQuery, [id], (error, results, fields) => {
           conn.release();
           if (error) {
-            console.error('Query error:', error);
-            return reject(new Error('Query error'));
+            console.error(error);
+            return reject(error);
           }
           if (results.length === 0) {
-            return reject(new Error('File not found'));
+            return reject("File not found");
           }
-
-          try {
-            const fileData = await fs.readFile(results[0].FileDir);
-            resolve({
-              fileName: results[0].FileName,
-              fileData: fileData,
-            });
-          } catch (fileError) {
-            console.error('File read error:', fileError);
-            reject(new Error('File read error'));
-          }
+          const fileData = fs.readFileSync(results[0].FileDir);
+          return resolve({
+            fileName: results[0].FileName,
+            fileData: fileData,
+          });
         });
       });
-    });
-  } catch (error) {
-    console.error('Unexpected error:', error);
-    throw new Error('Unexpected error');
-  }
+    } catch (error) {
+      console.error(error);
+      reject(error);
+    }
+});
 };
 
 const getUser = async (username) => {
@@ -95,7 +188,7 @@ const getUser = async (username) => {
           return;
         }
 
-        conn.query(selectQuery, [username], (error, results) => {
+        conn.execute(selectQuery, [username], (error, results) => {
           conn.release();
           if (error) {
             console.error(error);
@@ -282,4 +375,6 @@ module.exports = {
   getAlbums,
   getAlbum,
   addAlbum,
+  saveTrackProgress,
+  getTrackProgress,
 };

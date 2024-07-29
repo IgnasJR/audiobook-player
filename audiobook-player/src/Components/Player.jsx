@@ -56,9 +56,9 @@ function Player({ selectedTrack, setNotificationContent, setNotificationType, se
             'Authorization': `${token}`
           },
           body: JSON.stringify({
-            BookId: currentBookId,
-            Track: queuePosition,
-            Progress: audioRef.current.audioEl.current.currentTime
+            bookId: currentBookId.toString(),
+            track: queuePosition.toString(),
+            progress: audioRef.current.audioEl.current.currentTime.toString()
           })
         })
         .then((response) => response.json())
