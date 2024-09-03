@@ -227,12 +227,13 @@ const setupExpress = (app) => {
         res.status(401).send("Unauthorized");
         return;
       }
-      if (!verifyToken(req.headers.authorization)) {
+      const user = verifyToken(req.headers.authorization);
+      if (!user) {
         res.status(401).send("Unauthorized");
         return;
       }
       const album = req.query.album;
-      const albumData = await getAlbum(album);
+      const albumData = await getAlbum(album, user.userData.id);
       res.status(200).send(albumData);
     } catch (error) {
       console.error(error);

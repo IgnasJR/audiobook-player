@@ -285,28 +285,40 @@ const getAlbums = async () => {
   });
 };
 
-const getAlbum = async (album) => {
+const getAlbum = async (album, user_id) => {
   return new Promise((resolve, reject) => {
     try {
       const selectQuery = `
-      SELECT audiofiles.FileName, audiofiles.ID, albums.Artist, albums.albumName
-      FROM audiofiles 
-      INNER JOIN albums ON albums.id = audiofiles.album_id
-      WHERE albums.id = ?
-      ORDER BY 
-        CASE 
-          WHEN albums.album_type = "Audiobook" THEN audiofiles.FileName 
-          ELSE NULL 
-        END,
-        audiofiles.FileName`;
+        SELECT 
+          audiofiles.FileName, 
+          audiofiles.ID, 
+          albums.Artist, 
+          albums.albumName,
+          IFNULL(progress.track, 0) AS track,
+          IFNULL(progress.track_progress, 0) AS track_progress
+        FROM 
+          audiofiles 
+        INNER JOIN 
+          albums ON albums.id = audiofiles.album_id
+        LEFT JOIN 
+          progress ON progress.book_id = albums.id AND progress.user_id = ?
+        WHERE 
+          albums.id = ?
+        ORDER BY 
+          CASE 
+            WHEN albums.album_type = 'Audiobook' THEN audiofiles.FileName 
+            ELSE audiofiles.ID
+          END;
+      `;
+
       connection.getConnection((err, conn) => {
         if (err) {
           console.error(err);
-          reject("Internal Server Error", err);
+          reject("Internal Server Error");
           return;
         }
 
-        conn.query(selectQuery, [album], (error, results, fields) => {
+        conn.query(selectQuery, [user_id, album], (error, results) => {
           conn.release();
           if (error) {
             console.error(error);
