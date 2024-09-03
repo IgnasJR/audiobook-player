@@ -2,12 +2,12 @@ import "../index.css";
 import ReactAudioPlayer from 'react-audio-player';
 import React, { useEffect, useRef, useState } from "react";
 
-function Player({ selectedTrack, setNotificationContent, setNotificationType, setHeaderPresent, token, currentBookId}) {
+function Player({ selectedTrack, setNotificationContent, setNotificationType, setHeaderPresent, token, currentBookId, startingQueuePosition }) {
   const audioRef = useRef(null);
   const progressRef = useRef(null);
   const progressValueRef = useRef(null);
-  const [isPlaying, setIsPlaying] = useState(audioRef.current?.isPlaying);
-  const [queuePosition, setQueuePosition] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [queuePosition, setQueuePosition] = useState(startingQueuePosition.track || 0);
   const [volume, setVolume] = useState(1);
   const [audioSrc, setAudioSrc] = useState(null);
 
@@ -47,8 +47,28 @@ function Player({ selectedTrack, setNotificationContent, setNotificationType, se
   }, [selectedTrack, queuePosition, token]);
 
   useEffect(() => {
+    if (audioRef.current && startingQueuePosition.progress) {
+      const setTime = () => {
+        if (audioRef.current && audioRef.current.audioEl.current) {
+          audioRef.current.audioEl.current.currentTime = startingQueuePosition.progress;
+        }
+      };
+      const audioElement = audioRef.current ? audioRef.current.audioEl.current : null;
+      if (audioElement) {
+        audioElement.addEventListener("loadedmetadata", setTime);
+      }
+
+      return () => {
+        if (audioElement) {
+          audioElement.removeEventListener("loadedmetadata", setTime);
+        }
+      };
+    }
+  }, [audioSrc, startingQueuePosition.progress]);
+
+  useEffect(() => {
     const saveTrackProgress = () => {
-      if (isPlaying && token != null) {
+      if (isPlaying && token != null && audioRef.current && audioRef.current.audioEl.current) {
         fetch(`${window.location.protocol}//${window.location.hostname}:${process.env.REACT_APP_FRONT_END_PORT}/api/saveTrackProgress`, {
           method: 'POST',
           headers: {
@@ -79,34 +99,36 @@ function Player({ selectedTrack, setNotificationContent, setNotificationType, se
   }, [isPlaying, selectedTrack, queuePosition, setNotificationContent, setNotificationType, setHeaderPresent, currentBookId]);
 
   useEffect(() => {
-    const audioElement = audioRef.current.audioEl.current;
-    audioElement.volume = volume;
-    const handleTimeUpdate = () => {
-      const duration = audioElement.duration;
-      if (!isNaN(duration) && isFinite(duration)) {
-        const progress = (audioElement.currentTime / duration) * 100;
-        progressValueRef.current.style.width = `${progress}%`;
-      } else {
-        progressValueRef.current.style.width = `0% !important`;
-      }
-    };
-    const handlePlay = () => { setIsPlaying(true); };
-    const handlePause = () => { setIsPlaying(false); };
+    const audioElement = audioRef.current ? audioRef.current.audioEl.current : null;
+    if (audioElement) {
+      audioElement.volume = volume;
+      const handleTimeUpdate = () => {
+        const duration = audioElement.duration;
+        if (!isNaN(duration) && isFinite(duration)) {
+          const progress = (audioElement.currentTime / duration) * 100;
+          progressValueRef.current.style.width = `${progress}%`;
+        } else {
+          progressValueRef.current.style.width = `0% !important`;
+        }
+      };
+      const handlePlay = () => { setIsPlaying(true); };
+      const handlePause = () => { setIsPlaying(false); };
 
-    audioElement.addEventListener("timeupdate", handleTimeUpdate);
-    audioElement.addEventListener("play", handlePlay);
-    audioElement.addEventListener("pause", handlePause);
+      audioElement.addEventListener("timeupdate", handleTimeUpdate);
+      audioElement.addEventListener("play", handlePlay);
+      audioElement.addEventListener("pause", handlePause);
 
-    return () => {
-      audioElement.removeEventListener("timeupdate", handleTimeUpdate);
-      audioElement.removeEventListener("play", handlePlay);
-      audioElement.removeEventListener("pause", handlePause);
-    };
-  }, [volume, progressRef, audioRef, selectedTrack, queuePosition, isPlaying]);
+      return () => {
+        audioElement.removeEventListener("timeupdate", handleTimeUpdate);
+        audioElement.removeEventListener("play", handlePlay);
+        audioElement.removeEventListener("pause", handlePause);
+      };
+    }
+  }, [volume, progressRef, audioRef, selectedTrack, queuePosition]);
 
   const playPauseToggle = () => {
     try {
-      if (!selectedTrack) {
+      if (!selectedTrack || !audioRef.current) {
         return;
       }
       const audioElement = audioRef.current.audioEl.current;
@@ -124,10 +146,10 @@ function Player({ selectedTrack, setNotificationContent, setNotificationType, se
   };
 
   const handleNextInQueue = () => {
-    if (!selectedTrack) {
+    if (!selectedTrack || !audioRef.current) {
       return;
     }
-    if (queuePosition < selectedTrack.length - 1){
+    if (queuePosition < selectedTrack.length - 1) {
       setQueuePosition(queuePosition + 1);
     }
     audioRef.current.audioEl.current.pause();
@@ -135,10 +157,10 @@ function Player({ selectedTrack, setNotificationContent, setNotificationType, se
   };
 
   const handlePreviousInQueue = () => {
-    if (!selectedTrack) {
+    if (!selectedTrack || !audioRef.current) {
       return;
     }
-    if (queuePosition > 0){
+    if (queuePosition > 0) {
       setQueuePosition(queuePosition - 1);
     }
     audioRef.current.audioEl.current.pause();
@@ -146,7 +168,7 @@ function Player({ selectedTrack, setNotificationContent, setNotificationType, se
   };
 
   const handleProgressClick = (e) => {
-    if (!selectedTrack) {
+    if (!selectedTrack || !audioRef.current) {
       return;
     }
     try {
@@ -163,8 +185,10 @@ function Player({ selectedTrack, setNotificationContent, setNotificationType, se
 
   const setAudioTime = (time) => {
     try {
-      const audioElement = audioRef.current.audioEl.current;
-      audioElement.currentTime = time;
+      if (audioRef.current && audioRef.current.audioEl.current) {
+        const audioElement = audioRef.current.audioEl.current;
+        audioElement.currentTime = time;
+      }
     } catch (error) {
       console.log(error);
     }
@@ -172,10 +196,12 @@ function Player({ selectedTrack, setNotificationContent, setNotificationType, se
 
   const handleVolumeChange = (e) => {
     try {
-      const audioElement = audioRef.current.audioEl.current;
-      const newVolume = parseFloat(e.target.value);
-      setVolume(newVolume);
-      audioElement.volume = newVolume;
+      if (audioRef.current && audioRef.current.audioEl.current) {
+        const audioElement = audioRef.current.audioEl.current;
+        const newVolume = parseFloat(e.target.value);
+        setVolume(newVolume);
+        audioElement.volume = newVolume;
+      }
     } catch (error) {
       console.log(error);
     }
@@ -197,7 +223,7 @@ function Player({ selectedTrack, setNotificationContent, setNotificationType, se
         <svg xmlns="http://www.w3.org/2000/svg" onClick={handleNextInQueue} className="pl-4 pr-4" height='5vh' viewBox="0 0 320 512"><path d="M52.5 440.6c-9.5 7.9-22.8 9.7-34.1 4.4S0 428.4 0 416V96C0 83.6 7.2 72.3 18.4 67s24.5-3.6 34.1 4.4l192 160L256 241V96c0-17.7 14.3-32 32-32s32 14.3 32 32V416c0 17.7-14.3 32-32 32s-32-14.3-32-32V271l-11.5 9.6-192 160z"/></svg>
       </div>
       <div className="song-metadata absolute left-2 top-1 flow-root text-left">
-        <h1 className="text-slate-50 text-m">{selectedTrack ? selectedTrack[queuePosition].FileName.split('.')[0] : ''}</h1>
+        <h1 className="text-slate-50 text-m">{selectedTrack ? selectedTrack[queuePosition].FileName: ''}</h1>
         <h1 className="text-slate-300 text-sm">{selectedTrack ? selectedTrack[queuePosition].Artist : ''}</h1>
       </div>
       <div className="w-full fixed bottom-0 bg-gray-200 rounded-full h-2.5 dark:bg-gray-600 sm:mb-0 mb-2" ref={progressRef} onClick={handleProgressClick}>
