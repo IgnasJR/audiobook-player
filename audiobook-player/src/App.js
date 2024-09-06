@@ -11,6 +11,7 @@ import Main from "./Pages/Main";
 import Login from "./Pages/Login";
 import NotFound from "./Pages/NotFound";
 import AddBook from "./Pages/AddBook";
+import ViewAlbum from "./Pages/ViewAlbum";
 
 function App() {
   const [username, setUsername] = useState(Cookies.get("username"));
@@ -79,6 +80,7 @@ function App() {
             )
           }
         />
+        <Route path="/album/:id" element={<ViewAlbum token={token}/>} />
         <Route path="/404" element={<NotFound />} />
         <Route path="/*" element={<Navigate to="/404" />} />
       </Routes>

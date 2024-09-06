@@ -2,20 +2,20 @@ import "../index.css";
 import ReactAudioPlayer from 'react-audio-player';
 import React, { useEffect, useRef, useState } from "react";
 
-function Player({ selectedTrack, setNotificationContent, setNotificationType, setHeaderPresent, token, currentBookId, startingQueuePosition }) {
+function Player({ selectedAlbum, setNotificationContent, setNotificationType, setHeaderPresent, token, currentBookId }) {
   const audioRef = useRef(null);
   const progressRef = useRef(null);
   const progressValueRef = useRef(null);
+  const [queuePosition, setQueuePosition] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [queuePosition, setQueuePosition] = useState(startingQueuePosition.track || 0);
   const [volume, setVolume] = useState(1);
   const [audioSrc, setAudioSrc] = useState(null);
 
   useEffect(() => {
     const fetchAudio = async () => {
-      if (selectedTrack && selectedTrack[queuePosition]) {
-        const trackID = selectedTrack[queuePosition].ID;
-        const url = `${window.location.protocol}//${window.location.hostname}:${process.env.REACT_APP_FRONT_END_PORT}/api/retrieve?id=${trackID}`;
+      if (selectedAlbum) {
+        await setQueuePosition(selectedAlbum.track)
+        const url = `${window.location.protocol}//${window.location.hostname}:${process.env.REACT_APP_FRONT_END_PORT}/api/retrieve?id=${selectedAlbum.tracks[queuePosition].id}`;
         try {
           const response = await fetch(url, {
             headers: {
@@ -44,13 +44,13 @@ function Player({ selectedTrack, setNotificationContent, setNotificationType, se
         URL.revokeObjectURL(audioSrc);
       }
     };
-  }, [selectedTrack, queuePosition, token]);
+  }, [selectedAlbum, queuePosition, token]);
 
   useEffect(() => {
-    if (audioRef.current && startingQueuePosition.progress) {
+    if (audioRef.current && selectedAlbum) {
       const setTime = () => {
         if (audioRef.current && audioRef.current.audioEl.current) {
-          audioRef.current.audioEl.current.currentTime = startingQueuePosition.progress;
+          audioRef.current.audioEl.current.currentTime = selectedAlbum.trackProgress;
         }
       };
       const audioElement = audioRef.current ? audioRef.current.audioEl.current : null;
@@ -64,7 +64,7 @@ function Player({ selectedTrack, setNotificationContent, setNotificationType, se
         }
       };
     }
-  }, [audioSrc, startingQueuePosition.progress]);
+  }, [audioSrc, selectedAlbum]);
 
   useEffect(() => {
     const saveTrackProgress = () => {
@@ -96,7 +96,7 @@ function Player({ selectedTrack, setNotificationContent, setNotificationType, se
     return () => {
       clearInterval(interval);
     };
-  }, [isPlaying, selectedTrack, queuePosition, setNotificationContent, setNotificationType, setHeaderPresent, currentBookId]);
+  }, [isPlaying, selectedAlbum, queuePosition, setNotificationContent, setNotificationType, setHeaderPresent, currentBookId]);
 
   useEffect(() => {
     const audioElement = audioRef.current ? audioRef.current.audioEl.current : null;
@@ -124,11 +124,11 @@ function Player({ selectedTrack, setNotificationContent, setNotificationType, se
         audioElement.removeEventListener("pause", handlePause);
       };
     }
-  }, [volume, progressRef, audioRef, selectedTrack, queuePosition]);
+  }, [volume, progressRef, audioRef, selectedAlbum, queuePosition]);
 
   const playPauseToggle = () => {
     try {
-      if (!selectedTrack || !audioRef.current) {
+      if (!selectedAlbum || !audioRef.current) {
         return;
       }
       const audioElement = audioRef.current.audioEl.current;
@@ -146,10 +146,10 @@ function Player({ selectedTrack, setNotificationContent, setNotificationType, se
   };
 
   const handleNextInQueue = () => {
-    if (!selectedTrack || !audioRef.current) {
+    if (!selectedAlbum || !audioRef.current) {
       return;
     }
-    if (queuePosition < selectedTrack.length - 1) {
+    if (queuePosition < selectedAlbum.length - 1) {
       setQueuePosition(queuePosition + 1);
     }
     audioRef.current.audioEl.current.pause();
@@ -157,7 +157,7 @@ function Player({ selectedTrack, setNotificationContent, setNotificationType, se
   };
 
   const handlePreviousInQueue = () => {
-    if (!selectedTrack || !audioRef.current) {
+    if (!selectedAlbum || !audioRef.current) {
       return;
     }
     if (queuePosition > 0) {
@@ -168,7 +168,7 @@ function Player({ selectedTrack, setNotificationContent, setNotificationType, se
   };
 
   const handleProgressClick = (e) => {
-    if (!selectedTrack || !audioRef.current) {
+    if (!selectedAlbum || !audioRef.current) {
       return;
     }
     try {
@@ -223,8 +223,8 @@ function Player({ selectedTrack, setNotificationContent, setNotificationType, se
         <svg xmlns="http://www.w3.org/2000/svg" onClick={handleNextInQueue} className="pl-4 pr-4" height='5vh' viewBox="0 0 320 512"><path d="M52.5 440.6c-9.5 7.9-22.8 9.7-34.1 4.4S0 428.4 0 416V96C0 83.6 7.2 72.3 18.4 67s24.5-3.6 34.1 4.4l192 160L256 241V96c0-17.7 14.3-32 32-32s32 14.3 32 32V416c0 17.7-14.3 32-32 32s-32-14.3-32-32V271l-11.5 9.6-192 160z"/></svg>
       </div>
       <div className="song-metadata absolute left-2 top-1 flow-root text-left">
-        <h1 className="text-slate-50 text-m">{selectedTrack ? selectedTrack[queuePosition].FileName: ''}</h1>
-        <h1 className="text-slate-300 text-sm">{selectedTrack ? selectedTrack[queuePosition].Artist : ''}</h1>
+        <h1 className="text-slate-50 text-m">{selectedAlbum ? selectedAlbum.tracks[queuePosition].fileName: ''}</h1>
+        <h1 className="text-slate-300 text-sm">{selectedAlbum ? selectedAlbum.artist : ''}</h1>
       </div>
       <div className="w-full fixed bottom-0 bg-gray-200 rounded-full h-2.5 dark:bg-gray-600 sm:mb-0 mb-2" ref={progressRef} onClick={handleProgressClick}>
         <div className="bg-blue-600 h-2.5 rounded-full transition-all duration-100 hover:cursor-pointer" style={{width:0}} ref={progressValueRef}></div>

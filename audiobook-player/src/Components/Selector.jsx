@@ -3,7 +3,6 @@ import Player from './Player';
 
 function Selector({ setSelectedTrack, setSelectedAlbum, selectedTrack, setNotificationContent, setNotificationType, setHeaderPresent, selectedAlbum, token}) {
     const [allAlbums, setAllAlbums] = useState([]);
-    const [currentProgress, setCurrentProgress] = useState({track:0, progress:0});
 
     useEffect(() => {
         const fetchData = () => {
@@ -22,7 +21,7 @@ function Selector({ setSelectedTrack, setSelectedAlbum, selectedTrack, setNotifi
         fetchData()
             .then((data) => setAllAlbums(data))
             .catch((error) => console.error(error));
-    }, []);
+    }, [token]);
 
     const handleAlbumClick = async (album) => {
         const { Id } = album;
@@ -45,15 +44,8 @@ function Selector({ setSelectedTrack, setSelectedAlbum, selectedTrack, setNotifi
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
-    
             const data = await response.json();
-            setCurrentProgress({ track: data[0].track, progress: data[0].track_progress });
-
             setSelectedTrack(data);
-            
-            console.log(data);
-            console.log(currentProgress);
-
         } catch (error) {
             console.error('Error fetching album data:', error);
         }
@@ -79,9 +71,8 @@ function Selector({ setSelectedTrack, setSelectedAlbum, selectedTrack, setNotifi
                 setNotificationContent={setNotificationContent} 
                 setNotificationType={setNotificationType} 
                 setHeaderPresent={setHeaderPresent}
-                currentBookId={selectedAlbum}
+                selectedAlbum={selectedTrack}
                 token={token}
-                startingQueuePosition={currentProgress}
             /> : null}
         </div> : <h1 className="text-3xl text-slate-100 pt-32">Please log in to view albums</h1>
     );
