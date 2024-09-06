@@ -294,6 +294,7 @@ const getAlbum = async (album, user_id) => {
           audiofiles.ID, 
           albums.Artist, 
           albums.albumName,
+          albums.coverArtLink as coverArtLink,
           IFNULL(progress.track, 0) AS track,
           IFNULL(progress.track_progress, 0) AS track_progress
         FROM 
@@ -329,7 +330,20 @@ const getAlbum = async (album, user_id) => {
             reject("Album not found");
             return;
           }
-          resolve(results);
+
+          const albumInfo = {
+            artist: results[0].Artist,
+            albumName: results[0].albumName,
+            coverArtLink: results[0].coverArtLink,
+            track: results[0].track,
+            trackProgress: results[0].track_progress,
+            tracks: results.map(track => ({
+              fileName: track.FileName,
+              id: track.ID
+            }))
+          };
+
+          resolve(albumInfo);
         });
       });
     } catch (error) {
@@ -338,6 +352,8 @@ const getAlbum = async (album, user_id) => {
     }
   });
 };
+
+
 
 const addAlbum = (albumName, coverArtLink, artist) => {
   return new Promise((resolve, reject) => {
