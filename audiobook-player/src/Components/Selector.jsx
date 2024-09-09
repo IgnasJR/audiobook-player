@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Player from './Player';
+import { useNavigate } from 'react-router-dom';
+
 
 function Selector({ setSelectedTrack, setSelectedAlbum, selectedTrack, setNotificationContent, setNotificationType, setHeaderPresent, selectedAlbum, token, removeCookie}) {
     const [allAlbums, setAllAlbums] = useState([]);
@@ -29,32 +31,10 @@ function Selector({ setSelectedTrack, setSelectedAlbum, selectedTrack, setNotifi
             .catch((error) => console.error(error));
     }, [token, removeCookie]);
 
+    const navigate = useNavigate();
+    
     const handleAlbumClick = async (album) => {
-        const { Id } = album;
-    
-        if (selectedAlbum === Id) return;
-    
-        setSelectedTrack(null);
-        setSelectedAlbum(Id);
-    
-        try {
-            const response = await fetch(
-                `${window.location.protocol}//${window.location.hostname}:${process.env.REACT_APP_FRONT_END_PORT}/api/album?album=${Id}`, 
-                {
-                    headers: {
-                        Authorization: token
-                    }
-                }
-            );
-    
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            const data = await response.json();
-            setSelectedTrack(data);
-        } catch (error) {
-            console.error('Error fetching album data:', error);
-        }
+        navigate(`/album/${album.Id}`);
     };
     
 
