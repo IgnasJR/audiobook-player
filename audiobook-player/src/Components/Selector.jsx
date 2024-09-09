@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Player from './Player';
 
-function Selector({ setSelectedTrack, setSelectedAlbum, selectedTrack, setNotificationContent, setNotificationType, setHeaderPresent, selectedAlbum, token}) {
+function Selector({ setSelectedTrack, setSelectedAlbum, selectedTrack, setNotificationContent, setNotificationType, setHeaderPresent, selectedAlbum, token, removeCookie}) {
     const [allAlbums, setAllAlbums] = useState([]);
 
     useEffect(() => {
@@ -12,7 +12,13 @@ function Selector({ setSelectedTrack, setSelectedAlbum, selectedTrack, setNotifi
                         Authorization: `${token}`
                     }
                 })
-                    .then((response) => response.json())
+                    .then((response) => {
+                        if (response.status === 401) {
+                            removeCookie();
+                            alert("Session Expired. Please log in again.");
+                        }
+                        return response.json();
+                    })
                     .then((data) => resolve(data))
                     .catch((error) => reject(error));
             });
@@ -21,7 +27,7 @@ function Selector({ setSelectedTrack, setSelectedAlbum, selectedTrack, setNotifi
         fetchData()
             .then((data) => setAllAlbums(data))
             .catch((error) => console.error(error));
-    }, []);
+    }, [token, removeCookie]);
 
     const handleAlbumClick = (album) => {
         if (selectedAlbum === album.Id) {

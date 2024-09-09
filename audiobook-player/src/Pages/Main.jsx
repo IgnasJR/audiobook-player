@@ -31,6 +31,7 @@ function Main({ token, username, role, setToken, setUsername, setRole, removeCoo
         setHeaderPresent={setHeaderPresent}
         selectedAlbum={selectedAlbum}
         token={token}
+        removeCookie={removeCookie}
       />
     </div>
   );
