@@ -29,23 +29,37 @@ function Selector({ setSelectedTrack, setSelectedAlbum, selectedTrack, setNotifi
             .catch((error) => console.error(error));
     }, [token, removeCookie]);
 
-    const handleAlbumClick = (album) => {
-        if (selectedAlbum === album.Id) {
-            return;
-        }
+    const handleAlbumClick = async (album) => {
+        const { Id } = album;
+    
+        if (selectedAlbum === Id) return;
+    
         setSelectedTrack(null);
-        setSelectedAlbum(album.Id);
-        fetch(`${window.location.protocol}//${window.location.hostname}:${process.env.REACT_APP_FRONT_END_PORT}/api/album?album=${album.Id}`, {
-            headers: {
-            Authorization: `${token}`
+        setSelectedAlbum(Id);
+    
+        try {
+            const response = await fetch(
+                `${window.location.protocol}//${window.location.hostname}:${process.env.REACT_APP_FRONT_END_PORT}/api/album?album=${Id}`, 
+                {
+                    headers: {
+                        Authorization: token
+                    }
+                }
+            );
+    
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
-        })
-            .then((response) => response.json())
-            .then((data) => setSelectedTrack(data));
-    }
+            const data = await response.json();
+            setSelectedTrack(data);
+        } catch (error) {
+            console.error('Error fetching album data:', error);
+        }
+    };
+    
 
     return (
-        <div className="flex flex-wrap justify-center bg-inherit pt-16 pb-16 z-0">
+        token ? <div className="flex flex-wrap justify-center bg-inherit pt-16 pb-16 z-0">
             {allAlbums.length > 0 ? (allAlbums.map((album) =>
                 <div key={album.id} onClick={() => handleAlbumClick(album)} className={`relative m-5 flex w-48 max-w-xs flex-col overflow-hidden rounded-lg transition-colors ${selectedAlbum === album.Id ? "border-amber-700 bg-amber-600": "border-slate-600 bg-slate-700"} shadow-md transform transition-transform ease-in hover:scale-105`}>
                     <button className="relative mx-3 mt-3 flex h-40 overflow-hidden rounded-xl">
@@ -63,10 +77,10 @@ function Selector({ setSelectedTrack, setSelectedAlbum, selectedTrack, setNotifi
                 setNotificationContent={setNotificationContent} 
                 setNotificationType={setNotificationType} 
                 setHeaderPresent={setHeaderPresent}
-                currentBookId={selectedAlbum}
-                token={token} 
+                selectedAlbum={selectedTrack}
+                token={token}
             /> : null}
-        </div>
+        </div> : <h1 className="text-3xl text-slate-100 pt-32">Please log in to view albums</h1>
     );
 }
 

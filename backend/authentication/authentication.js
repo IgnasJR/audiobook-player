@@ -1,6 +1,4 @@
 const argon2 = require("argon2");
-const { generateToken } = require("./jwt");
-var crypto = require("crypto");
 
 const hashPassword = async (password) => {
   return await argon2.hash(password);

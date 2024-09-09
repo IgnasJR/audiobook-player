@@ -12,8 +12,13 @@ function generateToken(user) {
 }
 
 const verifyToken = (token) => {
-  const secret = process.env.JWT_SECRET;
-  return jsonwebtoken.verify(token, secret);
+  try {
+    const secret = process.env.JWT_SECRET;
+    return jsonwebtoken.verify(token, secret);
+  } catch (error) {
+    console.error("Error verifying token:", error);
+    return null;
+  }
 };
 
 const decodeToken = (token) => {

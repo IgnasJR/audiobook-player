@@ -11,6 +11,105 @@ if (!fs.existsSync(audioDir)) {
   fs.mkdirSync(audioDir, { recursive: true });
 }
 
+const getTrackProgress = (bookId, userId) => {
+  return new Promise((resolve, reject) => {
+    connection.getConnection((err, conn) => {
+      if (err) {
+        console.error('Error getting connection:', err);
+        return reject(err);
+      }
+
+      conn.query(
+        'SELECT * FROM progress WHERE user_id = ? AND book_id = ?',
+        [userId, bookId],
+        (err, rows) => {
+          conn.release();
+          if (err) {
+            console.error('Error selecting progress:', err);
+            return reject(err);
+          }
+
+          if (rows.length === 0) {
+            console.log('Track progress not found');
+            return resolve({
+              track: 0,
+              progress: 0,
+            });
+          } else {
+            console.log('Track progress retrieved successfully');
+            console.log(rows[0].track, rows[0].track_progress);
+            return resolve({
+              track: rows[0].track,
+              progress: rows[0].track_progress,
+            });
+          }
+        }
+      );
+    });
+  });
+};
+
+
+
+
+const saveTrackProgress = (bookId, userId, track, progress,) => {
+  connection.getConnection((err, conn) => {
+    if (err) {
+      console.error('Error getting connection:', err);
+    }
+
+    conn.beginTransaction((err) => {
+      if (err) {
+        console.error('Error beginning transaction:', err);
+        conn.release();
+        return callback(err);
+      }
+
+      conn.query(
+        'SELECT * FROM progress WHERE user_id = ? AND book_id = ?', [userId, bookId], (err, rows) => {
+          if (err) {
+            console.error('Error selecting progress:', err);
+            conn.rollback(() => {
+              conn.release();
+            });
+            return;
+          }
+          let query;
+          if (rows.length > 0) {
+            query = 'UPDATE progress SET track = ?, track_progress = ? WHERE user_id = ? AND book_id = ?';
+          } else {
+            query = 'INSERT INTO progress (track, track_progress, user_id, book_id) VALUES (?, ?, ?, ?)';
+          }
+
+          conn.query(query, [track, progress, userId, bookId], (err) => {
+            if (err) {
+              console.error('Error updating or inserting progress:', err);
+              conn.rollback(() => {
+                conn.release();
+              });
+              return;
+            }
+
+            conn.commit((err) => {
+              if (err) {
+                console.error('Error committing transaction:', err);
+                conn.rollback(() => {
+                  conn.release();
+                });
+                return;
+              }
+
+              console.log('Track progress saved successfully');
+              conn.release();
+            });
+          });
+        }
+      );
+    });
+  });
+};
+
+
 const addAudio = async (file, album) => {
   try {
     const filePath = path.join(audioDir, file.originalname);
@@ -52,23 +151,20 @@ const getAudio = async (id) => {
       connection.getConnection((err, conn) => {
         if (err) {
           console.error(err);
-          reject(err);
-          return;
+          return reject(err);
         }
 
         conn.query(selectQuery, [id], (error, results, fields) => {
           conn.release();
           if (error) {
             console.error(error);
-            reject(error);
-            return;
+            return reject(error);
           }
           if (results.length === 0) {
-            reject("File not found");
-            return;
+            return reject("File not found");
           }
           const fileData = fs.readFileSync(results[0].FileDir);
-          resolve({
+          return resolve({
             fileName: results[0].FileName,
             fileData: fileData,
           });
@@ -78,7 +174,7 @@ const getAudio = async (id) => {
       console.error(error);
       reject(error);
     }
-  });
+});
 };
 
 const getUser = async (username) => {
@@ -92,7 +188,7 @@ const getUser = async (username) => {
           return;
         }
 
-        conn.query(selectQuery, [username], (error, results) => {
+        conn.execute(selectQuery, [username], (error, results) => {
           conn.release();
           if (error) {
             console.error(error);
@@ -189,28 +285,41 @@ const getAlbums = async () => {
   });
 };
 
-const getAlbum = async (album) => {
+const getAlbum = async (album, user_id) => {
   return new Promise((resolve, reject) => {
     try {
       const selectQuery = `
-      SELECT audiofiles.FileName, audiofiles.ID, albums.Artist, albums.albumName
-      FROM audiofiles 
-      INNER JOIN albums ON albums.id = audiofiles.album_id
-      WHERE albums.id = ?
-      ORDER BY 
-        CASE 
-          WHEN albums.album_type = "Audiobook" THEN audiofiles.FileName 
-          ELSE NULL 
-        END,
-        audiofiles.FileName`;
+        SELECT 
+          audiofiles.FileName, 
+          audiofiles.ID, 
+          albums.Artist, 
+          albums.albumName,
+          albums.coverArtLink as coverArtLink,
+          IFNULL(progress.track, 0) AS track,
+          IFNULL(progress.track_progress, 0) AS track_progress
+        FROM 
+          audiofiles 
+        INNER JOIN 
+          albums ON albums.id = audiofiles.album_id
+        LEFT JOIN 
+          progress ON progress.book_id = albums.id AND progress.user_id = ?
+        WHERE 
+          albums.id = ?
+        ORDER BY 
+          CASE 
+            WHEN albums.album_type = 'Audiobook' THEN audiofiles.FileName 
+            ELSE audiofiles.ID
+          END;
+      `;
+
       connection.getConnection((err, conn) => {
         if (err) {
           console.error(err);
-          reject("Internal Server Error", err);
+          reject("Internal Server Error");
           return;
         }
 
-        conn.query(selectQuery, [album], (error, results, fields) => {
+        conn.query(selectQuery, [user_id, album], (error, results) => {
           conn.release();
           if (error) {
             console.error(error);
@@ -221,7 +330,20 @@ const getAlbum = async (album) => {
             reject("Album not found");
             return;
           }
-          resolve(results);
+
+          const albumInfo = {
+            artist: results[0].Artist,
+            albumName: results[0].albumName,
+            coverArtLink: results[0].coverArtLink,
+            track: results[0].track,
+            trackProgress: results[0].track_progress,
+            tracks: results.map(track => ({
+              fileName: track.FileName,
+              id: track.ID
+            }))
+          };
+
+          resolve(albumInfo);
         });
       });
     } catch (error) {
@@ -230,6 +352,8 @@ const getAlbum = async (album) => {
     }
   });
 };
+
+
 
 const addAlbum = (albumName, coverArtLink, artist) => {
   return new Promise((resolve, reject) => {
@@ -279,4 +403,6 @@ module.exports = {
   getAlbums,
   getAlbum,
   addAlbum,
+  saveTrackProgress,
+  getTrackProgress,
 };
