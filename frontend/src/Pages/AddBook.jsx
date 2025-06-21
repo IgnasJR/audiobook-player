@@ -40,11 +40,11 @@ function AddBook({ token, username, role, setToken, setUsername, setRole, remove
     formData.append('coverArtLink', coverArtLinkInput);
     
     for (let i = 0; i < fileInput.length; i++) {
-      formData.append('files', fileInput[i]);
+      formData.append('files', fileInput[i], fileInput[i].name);
     }
 
     const xhr = new XMLHttpRequest();
-    xhr.open('POST', `${window.location.protocol}//${window.location.hostname}:${process.env.REACT_APP_FRONT_END_PORT}/api/upload`, true);
+    xhr.open('POST', `/api/upload`, true);
     xhr.setRequestHeader('Authorization', `${token}`);
     xhr.upload.onprogress = (event) => {
       if (event.lengthComputable) {

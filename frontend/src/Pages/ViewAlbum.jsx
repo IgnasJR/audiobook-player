@@ -14,8 +14,7 @@ const ViewAlbum = ({ token }) => {
     useEffect(() => {
         const fetchAlbum = async () => {
             try {
-                const response = await fetch(`${window.location.protocol}//${window.location.hostname}:${process.env.REACT_APP_FRONT_END_PORT}/api/album?album=${id}`
-                    , {
+                const response = await fetch(`/api/album?album=${id}`, {
                     headers: {
                         Authorization: `${token}`
                     }

@@ -163,6 +163,7 @@ const setupExpress = (app) => {
       let uploadedFiles = [];
       for (let i = 0; i < req.files.length; i++) {
         const file = req.files[i];
+        const decodedName = Buffer.from(file.originalname, 'latin1').toString('utf8');
         const mimeType = file.mimetype;
         if (!mimeType.startsWith("audio/")) {
           return res
@@ -170,7 +171,7 @@ const setupExpress = (app) => {
             .send("Invalid file type. Only audio files are allowed.");
         }
         uploadedFiles.push({
-          originalname: file.originalname,
+          originalname: decodedName,
           buffer: file.buffer,
         });
       }
@@ -196,7 +197,7 @@ const setupExpress = (app) => {
         res.status(500).send("Server unable to process files. Please try again.");
       }
     }
-  });  
+  });
 
   app.get("/api/albums", async (req, res) => {
     try {

@@ -9,7 +9,7 @@ function Selector({ setSelectedTrack, setSelectedAlbum, selectedTrack, setNotifi
     useEffect(() => {
         const fetchData = () => {
             return new Promise((resolve, reject) => {
-                fetch(`${window.location.protocol}//${window.location.hostname}:${process.env.REACT_APP_FRONT_END_PORT}/api/albums`, {
+                fetch(`/api/albums`, {
                     headers: {
                         Authorization: `${token}`
                     }

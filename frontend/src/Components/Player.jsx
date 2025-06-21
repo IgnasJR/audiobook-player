@@ -15,9 +15,8 @@ function Player({ selectedAlbum, setNotificationContent, setNotificationType, se
     const fetchAudio = async () => {
       if (selectedAlbum) {
         await setQueuePosition(selectedAlbum.track)
-        const url = `${window.location.protocol}//${window.location.hostname}:${process.env.REACT_APP_FRONT_END_PORT}/api/retrieve?id=${selectedAlbum.tracks[queuePosition].id}`;
         try {
-          const response = await fetch(url, {
+          const response = await fetch(`/api/retrieve?id=${selectedAlbum.tracks[queuePosition].id}`, {
             headers: {
               'Authorization': `${token}`
             }
@@ -69,7 +68,7 @@ function Player({ selectedAlbum, setNotificationContent, setNotificationType, se
   useEffect(() => {
     const saveTrackProgress = () => {
       if (isPlaying && token != null && audioRef.current && audioRef.current.audioEl.current) {
-        fetch(`${window.location.protocol}//${window.location.hostname}:${process.env.REACT_APP_FRONT_END_PORT}/api/saveTrackProgress`, {
+        fetch(`/api/saveTrackProgress`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -208,7 +207,8 @@ function Player({ selectedAlbum, setNotificationContent, setNotificationType, se
   };
 
   return (
-    <div className='fixed bottom-0 w-full sm:h-[4.5rem] h-24 bg-slate-700'>
+    <div className="fixed bottom-0 w-full bg-slate-700 z-50 sm:h-20 h-28">
+      {/* Audio */}
       <ReactAudioPlayer
         src={audioSrc}
         autoPlay
@@ -216,21 +216,67 @@ function Player({ selectedAlbum, setNotificationContent, setNotificationType, se
         onEnded={handleNextInQueue}
         ref={audioRef}
       />
-      <div className='controls relative sm:pt-2 pt-8 z-10'>
-        <input className="absolute right-2 top-1/4 max-w-3xl h-2 mb-6 bg-slate-400 rounded-lg appearance-none cursor-pointer dark:bg-gray-600 invisible sm:visible" type="range" id="volume" name="volume" min="0" max="1" step="0.01" onChange={handleVolumeChange}/>
-        <svg xmlns="http://www.w3.org/2000/svg" onClick={handlePreviousInQueue} className="pl-4 pr-4" padd height='5vh' viewBox="0 0 320 512"><path d="M267.5 440.6c9.5 7.9 22.8 9.7 34.1 4.4s18.4-16.6 18.4-29V96c0-12.4-7.2-23.7-18.4-29s-24.5-3.6-34.1 4.4l-192 160L64 241V96c0-17.7-14.3-32-32-32S0 78.3 0 96V416c0 17.7 14.3 32 32 32s32-14.3 32-32V271l11.5 9.6 192 160z"/></svg>
-        <svg onClick={playPauseToggle} xmlns="http://www.w3.org/2000/svg" height='5vh' viewBox="0 0 384 512">{isPlaying? <path d="M48 64C21.5 64 0 85.5 0 112V400c0 26.5 21.5 48 48 48H80c26.5 0 48-21.5 48-48V112c0-26.5-21.5-48-48-48H48zm192 0c-26.5 0-48 21.5-48 48V400c0 26.5 21.5 48 48 48h32c26.5 0 48-21.5 48-48V112c0-26.5-21.5-48-48-48H240z"/> : <path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"/>}</svg>
-        <svg xmlns="http://www.w3.org/2000/svg" onClick={handleNextInQueue} className="pl-4 pr-4" height='5vh' viewBox="0 0 320 512"><path d="M52.5 440.6c-9.5 7.9-22.8 9.7-34.1 4.4S0 428.4 0 416V96C0 83.6 7.2 72.3 18.4 67s24.5-3.6 34.1 4.4l192 160L256 241V96c0-17.7 14.3-32 32-32s32 14.3 32 32V416c0 17.7-14.3 32-32 32s-32-14.3-32-32V271l-11.5 9.6-192 160z"/></svg>
+  
+      {/* Metadata */}
+      <div className="absolute left-4 top-2 text-left">
+        <h1 className="text-white text-sm sm:text-base font-medium truncate max-w-xs">
+          {selectedAlbum ? selectedAlbum.tracks[queuePosition].fileName : ''}
+        </h1>
+        <h2 className="text-slate-300 text-xs sm:text-sm truncate max-w-xs">
+          {selectedAlbum ? selectedAlbum.artist : ''}
+        </h2>
       </div>
-      <div className="song-metadata absolute left-2 top-1 flow-root text-left">
-        <h1 className="text-slate-50 text-m">{selectedAlbum ? selectedAlbum.tracks[queuePosition].fileName: ''}</h1>
-        <h1 className="text-slate-300 text-sm">{selectedAlbum ? selectedAlbum.artist : ''}</h1>
+  
+      {/* Controls */}
+      <div className="flex justify-center items-center sm:pt-3 pt-10">
+        <button onClick={handlePreviousInQueue} className="mx-3">
+          <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 320 512" fill="white">
+            <path d="M267.5 440.6c9.5 7.9 22.8 9.7 34.1 4.4s18.4-16.6 18.4-29V96c0-12.4-7.2-23.7-18.4-29s-24.5-3.6-34.1 4.4l-192 160L64 241V96c0-17.7-14.3-32-32-32S0 78.3 0 96V416c0 17.7 14.3 32 32 32s32-14.3 32-32V271l11.5 9.6 192 160z" />
+          </svg>
+        </button>
+  
+        <button onClick={playPauseToggle} className="mx-3">
+          <svg xmlns="http://www.w3.org/2000/svg" height="32" viewBox="0 0 384 512" fill="white">
+            {isPlaying ? (
+              <path d="M48 64C21.5 64 0 85.5 0 112V400c0 26.5 21.5 48 48 48H80c26.5 0 48-21.5 48-48V112c0-26.5-21.5-48-48-48H48zm192 0c-26.5 0-48 21.5-48 48V400c0 26.5 21.5 48 48 48h32c26.5 0 48-21.5 48-48V112c0-26.5-21.5-48-48-48H240z" />
+            ) : (
+              <path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z" />
+            )}
+          </svg>
+        </button>
+  
+        <button onClick={handleNextInQueue} className="mx-3">
+          <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 320 512" fill="white">
+            <path d="M52.5 440.6c-9.5 7.9-22.8 9.7-34.1 4.4S0 428.4 0 416V96C0 83.6 7.2 72.3 18.4 67s24.5-3.6 34.1 4.4l192 160L256 241V96c0-17.7 14.3-32 32-32s32 14.3 32 32V416c0 17.7-14.3 32-32 32s-32-14.3-32-32V271l-11.5 9.6-192 160z" />
+          </svg>
+        </button>
+  
+        {/* Volume (hidden on mobile) */}
+        <input
+          type="range"
+          min="0"
+          max="1"
+          step="0.01"
+          onChange={handleVolumeChange}
+          className="ml-4 w-24 sm:block hidden"
+        />
       </div>
-      <div className="w-full fixed bottom-0 bg-gray-200 rounded-full h-2.5 dark:bg-gray-600 sm:mb-0 mb-2" ref={progressRef} onClick={handleProgressClick}>
-        <div className="bg-blue-600 h-2.5 rounded-full transition-all duration-100 hover:cursor-pointer" style={{width:0}} ref={progressValueRef}></div>
+  
+      {/* Progress Bar */}
+      <div
+        className="absolute bottom-0 left-0 w-full bg-gray-200 dark:bg-gray-600 h-2.5"
+        ref={progressRef}
+        onClick={handleProgressClick}
+      >
+        <div
+          className="bg-blue-600 h-2.5 transition-all duration-100 rounded-full hover:cursor-pointer"
+          style={{ width: 0 }}
+          ref={progressValueRef}
+        />
       </div>
     </div>
   );
+  
 }
 
 export default Player;
