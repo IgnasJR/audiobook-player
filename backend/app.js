@@ -2,13 +2,13 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const http = require("http");
-const { setupExpress } = require("./controllers/express");
+const setupRoutes = require("./controllers/index");
 
 const setup = () => {
   const app = express();
   app.use(cors());
   app.use(express.json());
-  setupExpress(app);
+  setupRoutes(app);
 
   const httpServer = http.createServer(app);
   httpServer.listen(3001, () => {
