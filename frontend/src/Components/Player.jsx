@@ -2,7 +2,7 @@ import "../index.css";
 import ReactAudioPlayer from 'react-audio-player';
 import React, { useEffect, useRef, useState } from "react";
 
-function Player({ selectedAlbum, setNotificationContent, setNotificationType, setHeaderPresent, token, currentBookId }) {
+function Player({ selectedAlbum, setNotificationContent, setNotificationType, setHeaderPresent, token, currentAlbumId }) {
   const audioRef = useRef(null);
   const progressRef = useRef(null);
   const progressValueRef = useRef(null);
@@ -75,7 +75,7 @@ function Player({ selectedAlbum, setNotificationContent, setNotificationType, se
             'Authorization': `${token}`
           },
           body: JSON.stringify({
-            bookId: currentBookId.toString(),
+            bookId: currentAlbumId.toString(),
             track: queuePosition.toString(),
             progress: audioRef.current.audioEl.current.currentTime.toString()
           })
@@ -95,7 +95,7 @@ function Player({ selectedAlbum, setNotificationContent, setNotificationType, se
     return () => {
       clearInterval(interval);
     };
-  }, [isPlaying, selectedAlbum, queuePosition, setNotificationContent, setNotificationType, setHeaderPresent, currentBookId]);
+  }, [isPlaying, selectedAlbum, queuePosition, setNotificationContent, setNotificationType, setHeaderPresent, currentAlbumId]);
 
   useEffect(() => {
     const audioElement = audioRef.current ? audioRef.current.audioEl.current : null;
