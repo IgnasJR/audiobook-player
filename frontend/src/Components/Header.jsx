@@ -1,25 +1,21 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
 import React from "react";
 import { NavLink, useNavigate } from "react-router-dom";
+import Cookies from "js-cookie";
 
-function Header({
-  token,
-  username,
-  role,
-  setToken,
-  setUsername,
-  setRole,
-  removeCookie,
-}) {
+function Header({ username, setUsername, setRole }) {
   const navigate = useNavigate();
 
   function handleLoginButtonClick() {
-    setToken(null);
-    setUsername(null);
-    setRole(null);
     removeCookie();
     navigate("/login");
   }
+
+  const removeCookie = () => {
+    Cookies.remove("token");
+    Cookies.remove("role");
+    Cookies.remove("username");
+  };
 
   return (
     <div className="fixed top-0 w-full h-16 max-h-16 bg-slate-700 z-10 drop-shadow-xl border-b-2 border-black">
@@ -40,17 +36,31 @@ function Header({
           <NavLink to={"/"}>
             <h1 class="font-semibold text-xl tracking-tight">PlayerJR</h1>
           </NavLink>
-          <NavLink to={"/addbook"}>
-            <a class="pl-6 inline-block text-m text-white hover:text-slate-400">
-              Add Book
-            </a>
-          </NavLink>
+          {Cookies.get("role") === "admin" && (
+            <>
+              <NavLink to={"/manage-users"}>
+                <a class="pl-6 inline-block text-m text-white hover:text-slate-400">
+                  Manage Users
+                </a>
+              </NavLink>
+              <NavLink to={"/addbook"}>
+                <a class="pl-6 inline-block text-m text-white hover:text-slate-400">
+                  Add Book
+                </a>
+              </NavLink>
+              <NavLink to={"/manage-albums"}>
+                <a class="pl-6 inline-block text-m text-white hover:text-slate-400">
+                  Manage Books
+                </a>
+              </NavLink>
+            </>
+          )}
         </div>
         <a
           class="inline-block text-m text-white hover:text-slate-400 hover:cursor-pointer"
           onClick={handleLoginButtonClick}
         >
-          {username == null ? "Login" : "Logout"}
+          {Cookies.get("role") == null ? "Login" : "Logout"}
         </a>
       </nav>
     </div>

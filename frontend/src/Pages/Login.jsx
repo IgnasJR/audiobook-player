@@ -26,8 +26,10 @@ function Login({ setUsername, setToken, setRole, setCookie, setError }) {
         body: JSON.stringify({ username, password }),
       });
 
+      const data = await res.json();
+
       if (res.status === 200) {
-        const { username, token, role } = await res.json();
+        const { username, token, role } = data;
         setRole(role);
         setUsername(username);
         setToken(token);
@@ -43,13 +45,16 @@ function Login({ setUsername, setToken, setRole, setCookie, setError }) {
           replace: true,
         });
       } else if (res.status === 400) {
-        setError("Invalid username or password");
+        setError({ type: "error", message: "Invalid username or password" });
+      } else if (res.status === 403) {
+        console.log(res.statusText);
+        setError({ type: "error", message: data.message });
       } else {
-        setError("Internal Server Error");
+        setError({ type: "error", message: "Internal Server Error" });
       }
     } catch (err) {
+      setError({ type: "error", message: "Network error" });
       console.error("Error:", err);
-      setError("Network error");
     }
   };
 

@@ -1,41 +1,129 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
 const connection = require("../database/mysql").connection;
-const { hashPassword, comparePassword } = require("../authentication/authentication");
+const {
+  hashPassword,
+  comparePassword,
+} = require("../authentication/authentication");
 const { generateToken, verifyToken } = require("../authentication/jwt");
 
 router.post("/register", async (req, res) => {
-    try {
-      const { username, password } = req.body;
-      await addUser(username, password);
-      res.status(200).send("Success");
-    } catch (error) {
-      if (error.message === "User already exists") {
-        res.status(400).send("User already exists");
-      } else if (error.message === "Registration Disabled") {
-        res.status(403).send("Registration Disabled");
-      } else {
-        res.status(500).send("Internal Server Error");
-      }
+  try {
+    const { username, password } = req.body;
+    await addUser(username, password);
+    res.status(200).send("Success");
+  } catch (error) {
+    if (error.message === "User already exists") {
+      res.status(400).send("User already exists");
+    } else if (error.message === "Registration Disabled") {
+      res.status(403).send("Registration Disabled");
+    } else {
+      res.status(500).send("Internal Server Error");
     }
+  }
 });
 
 router.post("/login", async (req, res) => {
-    try {
-      const { username, password } = req.body;
-      const user = await getUser(username);
-      console.log(user);
-      if (!user || !(await comparePassword(password, user.password))) {
-        res.status(400).send("Unable to authenticate user");
-        return;
-      }
-      const token = generateToken(user);
-      res.status(200).send({ token, role: user.role, username: user.username });
-    } catch (error) {
-      console.error(error);
+  try {
+    const { username, password } = req.body;
+    const user = await getUser(username);
+    console.log(user);
+    if (!user || !(await comparePassword(password, user.password))) {
+      res.status(400).json({ message: "Invalid username or password" });
+      return;
+    }
+    if (user.status === "pending") {
+      res.status(403).json({ message: "User is pending approval" });
+      return;
+    }
+    if (user.status === "deleted") {
+      res.status(403).json({ message: "User has been deleted" });
+      return;
+    }
+    const token = generateToken(user);
+    res.status(200).send({ token, role: user.role, username: user.username });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+router.get("/get-all-users", async (req, res) => {
+  try {
+    if (!req.headers.authorization) {
+      return res.status(401).send("Unauthorized");
+    }
+    console.log(req.headers.authorization);
+    let user = verifyToken(req.headers.authorization);
+    console.log(user);
+    if (!user || user.userData.role !== "admin") {
+      return res.status(401).send("Unauthorized");
+    }
+    const users = await getUsers();
+    res.status(200).send(users);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+router.put("/user-status/:id", (req, res) => {
+  handleUserStatusUpdate(req, res, "active");
+});
+
+router.delete("/user-status/:id", (req, res) => {
+  handleUserStatusUpdate(req, res, "deleted");
+});
+
+async function handleUserStatusUpdate(req, res, status) {
+  try {
+    const token = req.headers.authorization;
+    if (!token) return res.status(401).send("Unauthorized");
+
+    const user = verifyToken(token);
+    if (!user || user.userData.role !== "admin") {
+      return res.status(401).send("Unauthorized");
+    }
+
+    const userId = req.params.id;
+    const result = await updateUserStatus(userId, status);
+
+    if (result.affectedRows === 0) {
+      return res.status(404).send("User not found");
+    }
+
+    res.status(200).send("User status updated successfully");
+  } catch (error) {
+    console.error(error);
+    if (error.code === "ER_NO_REFERENCED_ROW_2") {
+      res.status(404).send("User not found");
+    } else {
       res.status(500).send("Internal Server Error");
     }
-});
+  }
+}
+
+const updateUserStatus = (id, status) => {
+  return new Promise((resolve, reject) => {
+    const updateQuery = "UPDATE users SET status = ? WHERE ID = ?";
+    connection.getConnection((err, conn) => {
+      if (err) {
+        console.error(err);
+        reject(err);
+        return;
+      }
+      conn.query(updateQuery, [status, id], (error, results) => {
+        conn.release();
+        if (error) {
+          console.error(error);
+          reject(error);
+          return;
+        }
+        resolve(results);
+      });
+    });
+  });
+};
 
 const getUser = async (username) => {
   return new Promise((resolve, reject) => {
@@ -64,6 +152,7 @@ const getUser = async (username) => {
             password: results[0].pass,
             role: results[0].role,
             id: results[0].ID,
+            status: results[0].status,
           });
         });
       });
@@ -71,6 +160,36 @@ const getUser = async (username) => {
       console.error(error);
       reject(error);
     }
+  });
+};
+
+const getUsers = () => {
+  return new Promise((resolve, reject) => {
+    const selectQuery = "SELECT * FROM users";
+    connection.getConnection((err, conn) => {
+      if (err) {
+        console.error(err);
+        reject(err);
+        return;
+      }
+      conn.query(selectQuery, (error, results) => {
+        conn.release();
+        console.log(results);
+        if (error) {
+          console.error(error);
+          reject(error);
+          return;
+        }
+        const users = results.map((user) => ({
+          username: user.user,
+          role: user.role,
+          id: user.ID,
+          created: user.create_date,
+          status: user.status,
+        }));
+        resolve(users);
+      });
+    });
   });
 };
 
@@ -115,7 +234,5 @@ const addUser = async (username, password) => {
     });
   });
 };
-
-
 
 module.exports = router;
