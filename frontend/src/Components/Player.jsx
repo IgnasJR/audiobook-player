@@ -20,15 +20,13 @@ function Player({
 
   useEffect(() => {
     const fetchAudio = async () => {
-      if (selectedAlbum) {
-        await setQueuePosition(selectedAlbum.track);
+      if (selectedAlbum && selectedAlbum.tracks.length > 0) {
         try {
+          const trackIndex = queuePosition ?? selectedAlbum.track ?? 0;
           const response = await fetch(
-            `/api/retrieve?id=${selectedAlbum.tracks[queuePosition].id}`,
+            `/api/retrieve?id=${selectedAlbum.tracks[trackIndex].id}`,
             {
-              headers: {
-                Authorization: `${token}`,
-              },
+              headers: { Authorization: `${token}` },
             }
           );
           if (response.ok) {
@@ -54,6 +52,12 @@ function Player({
       }
     };
   }, [selectedAlbum, queuePosition, token]);
+
+  useEffect(() => {
+    if (selectedAlbum && selectedAlbum.track != null) {
+      setQueuePosition(selectedAlbum.track);
+    }
+  }, [selectedAlbum]);
 
   useEffect(() => {
     if (audioRef.current && selectedAlbum) {
@@ -177,10 +181,9 @@ function Player({
   };
 
   const handleNextInQueue = () => {
-    if (!selectedAlbum || !audioRef.current) {
-      return;
-    }
-    if (queuePosition < selectedAlbum.length - 1) {
+    if (!selectedAlbum || !audioRef.current) return;
+
+    if (queuePosition < selectedAlbum.tracks.length - 1) {
       setQueuePosition(queuePosition + 1);
     }
     audioRef.current.audioEl.current.pause();
