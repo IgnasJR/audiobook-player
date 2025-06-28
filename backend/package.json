@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node app.js",
+    "start:with-frontend": "RUN_FRONTEND=true node app.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

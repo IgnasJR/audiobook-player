@@ -44,9 +44,6 @@ function RequireAuth({ permissionLvl, children }) {
           />
         );
       }
-      break;
-    default:
-      break;
   }
 
   return children;
