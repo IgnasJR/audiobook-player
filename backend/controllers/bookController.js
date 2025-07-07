@@ -1,4 +1,4 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
 const connection = require("../database/mysql").connection;
 const { verifyToken } = require("../authentication/jwt");
@@ -13,48 +13,47 @@ if (!fs.existsSync(audioDir)) {
 }
 
 router.get("/albums", async (req, res) => {
-    try {
-      if (!req.headers.authorization) {
-        res.status(401).send("Unauthorized");
-        return;
-      }
-      if (!verifyToken(req.headers.authorization)) {
-        res.status(401).send("Unauthorized");
-        return;
-      }
-
-      const albums = await getAlbums();
-      res.status(200).send(albums);
-    } catch (error) {
-      console.error(error);
-      res.status(500).send("Internal Server Error");
+  try {
+    if (!req.headers.authorization) {
+      res.status(401).send("Unauthorized");
+      return;
     }
+    if (!verifyToken(req.headers.authorization)) {
+      res.status(401).send("Unauthorized");
+      return;
+    }
+
+    const albums = await getAlbums();
+    res.status(200).send(albums);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Internal Server Error");
+  }
 });
 
 router.get("/album", async (req, res) => {
-    try {
-      if (!req.query.album) {
-        res.status(400).send("No album provided");
-        return;
-      }
-      if (!req.headers.authorization) {
-        res.status(401).send("Unauthorized");
-        return;
-      }
-      const user = verifyToken(req.headers.authorization);
-      if (!user) {
-        res.status(401).send("Unauthorized");
-        return;
-      }
-      const album = req.query.album;
-      const albumData = await getAlbum(album, user.userData.id);
-      res.status(200).send(albumData);
-    } catch (error) {
-      console.error(error);
-      res.status(500).send("Internal Server Error");
+  try {
+    if (!req.query.album) {
+      res.status(400).send("No album provided");
+      return;
     }
+    if (!req.headers.authorization) {
+      res.status(401).send("Unauthorized");
+      return;
+    }
+    const user = verifyToken(req.headers.authorization);
+    if (!user) {
+      res.status(401).send("Unauthorized");
+      return;
+    }
+    const album = req.query.album;
+    const albumData = await getAlbum(album, user.userData.id);
+    res.status(200).send(albumData);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Internal Server Error");
+  }
 });
-
 
 router.get("/retrieve", async (req, res) => {
   try {
@@ -97,7 +96,13 @@ router.get("/retrieve", async (req, res) => {
       const start = parseInt(parts[0], 10);
       const end = parts[1] ? parseInt(parts[1], 10) : fileData.length - 1;
 
-      if (isNaN(start) || isNaN(end) || start >= fileData.length || end >= fileData.length || start > end) {
+      if (
+        isNaN(start) ||
+        isNaN(end) ||
+        start >= fileData.length ||
+        end >= fileData.length ||
+        start > end
+      ) {
         return res.status(416).send("Requested range not satisfiable");
       }
 
@@ -123,7 +128,6 @@ router.get("/retrieve", async (req, res) => {
   }
 });
 
-
 router.post("/upload", upload.array("files"), async (req, res) => {
   try {
     if (!req.files || req.files.length === 0) {
@@ -146,7 +150,9 @@ router.post("/upload", upload.array("files"), async (req, res) => {
     let uploadedFiles = [];
     for (let i = 0; i < req.files.length; i++) {
       const file = req.files[i];
-      const decodedName = Buffer.from(file.originalname, 'latin1').toString('utf8');
+      const decodedName = Buffer.from(file.originalname, "latin1").toString(
+        "utf8"
+      );
       const mimeType = file.mimetype;
       if (!mimeType.startsWith("audio/")) {
         return res
@@ -263,10 +269,10 @@ const getAlbum = async (album, user_id) => {
             coverArtLink: results[0].coverArtLink,
             track: results[0].track,
             trackProgress: results[0].track_progress,
-            tracks: results.map(track => ({
+            tracks: results.map((track) => ({
               fileName: track.FileName,
-              id: track.ID
-            }))
+              id: track.ID,
+            })),
           };
 
           resolve(albumInfo);
@@ -309,7 +315,7 @@ const getAudio = async (id) => {
       console.error(error);
       reject(error);
     }
-});
+  });
 };
 
 const addAudio = async (file, album) => {
@@ -345,7 +351,6 @@ const addAudio = async (file, album) => {
     console.error(error);
   }
 };
-
 
 const addAlbum = (albumName, coverArtLink, artist) => {
   return new Promise((resolve, reject) => {

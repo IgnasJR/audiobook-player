@@ -27,7 +27,6 @@ router.post("/login", async (req, res) => {
   try {
     const { username, password } = req.body;
     const user = await getUser(username);
-    console.log(user);
     if (!user || !(await comparePassword(password, user.password))) {
       res.status(400).json({ message: "Invalid username or password" });
       return;
@@ -53,9 +52,7 @@ router.get("/get-all-users", async (req, res) => {
     if (!req.headers.authorization) {
       return res.status(401).send("Unauthorized");
     }
-    console.log(req.headers.authorization);
     let user = verifyToken(req.headers.authorization);
-    console.log(user);
     if (!user || user.userData.role !== "admin") {
       return res.status(401).send("Unauthorized");
     }
@@ -218,7 +215,6 @@ const addUser = async (username, password) => {
           reject(new Error("User already exists"));
         } else {
           const hashedPassword = await hashPassword(password);
-          console.log(password, hashedPassword);
           const values = [username, hashedPassword];
           conn.query(insertQuery, values, (error, results) => {
             conn.release();

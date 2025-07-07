@@ -11,11 +11,12 @@ const setup = () => {
   app.use(express.json());
   setupRoutes(app);
 
-  if (process.env.RUN_FRONTEND === 'true') {
-    app.use(express.static(path.join(__dirname, '..', 'frontend', 'build')));
+  if (process.env.RUN_FRONTEND === "true") {
+    const buildPath = path.join(__dirname, "client", "build");
+    app.use(express.static(buildPath));
 
-    app.get('*', (req, res) => {
-      res.sendFile(path.join(__dirname, '..', 'frontend', 'build', 'index.html'));
+    app.get("*", (req, res) => {
+      res.sendFile(path.join(buildPath, "index.html"));
     });
   }
 
